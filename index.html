@@ -224,5 +224,38 @@
 
     }
     </script>
+<div style="margin-left:400">
+<x3d width="500px" height="400px">
+  <scene>
+    <shape>
+      <appearance>
+        <material diffuseColor='steelblue'></material>  
+      </appearance>
+      <sphere radius=0.5></sphere>
+    </shape>
+    <transform translation='-3 0 0'> 
+    <shape> 
+        <appearance> 
+        <material diffuseColor='steelblue'></material> 
+        </appearance> 
+        <sphere radius=0.5></sphere> 
+    </shape> 
+    </transform> 
+<Transform translation='-4 0 0'>
+<Shape>
+<IndexedLineSet coordIndex='0 1'>
+<Coordinate DEF='Segment' point='0 0 0 7 0 0'/>
+</IndexedLineSet> 
+<Appearance>
+<Material diffuseColor='1 0 0'/> 
+<LineProperties containerField='lineProperties'>
+<!-- linetype='1' solid -->
+</LineProperties>
+</Appearance>
+</Shape>
+</Transform>
+  </scene>
+</x3d>  
+</div>
   </body>
 </html>
