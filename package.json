@@ -1,0 +1,8 @@
+{
+  "name" : "scratch-web-stuff",
+  "version" : "0.0.1",
+  "dependencies" : {
+    "underscore": "1.x",
+    "d3": "3.x",
+  }
+}
