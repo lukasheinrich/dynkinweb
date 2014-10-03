@@ -4,7 +4,10 @@
   	<script src="node_modules/d3/d3.js" charset="utf-8"></script>
     <script src="node_modules/underscore/underscore.js" charset="utf-8"></script>
     <script src="js/numeric-1.2.6.min.js" charset="utf-8"></script>
+    <script src="node_modules/js-combinatorics/combinatorics.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript"  src="http://www.x3dom.org/x3dom/release/x3dom.js">
+    </script>
     <style type="text/css" media="screen">
     body{
       background-color:#eee;
@@ -20,6 +23,12 @@
       stroke:steelblue;
       stroke-width:3;
     }
+    .tensor{
+      fill:none;
+      stroke:darkolivegreen;
+      stroke-width:2;
+    }
+
     .rootarrow{
       stroke-width:1;
       stroke:steelblue;
@@ -163,24 +172,31 @@
      
 
        simpleroots = [a1,a2]
-       var cartanmatrix = _.range(2).map(function(i){return _.range(2).map(function(j){
+       var cartanmatrix = _.range(simpleroots.length).map(function(i){return _.range(simpleroots.length).map(function(j){
          return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
        })})
 
-       fundamentalroots = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
-
        var rootgrid = _.range(-2*physwidth,2*physwidth).map(function(i){return _.range(-2*physwidth,2*physwidth).map(function(j){
-         return numeric.add(numeric.mul(i,a1),numeric.mul(j,a2))
+         return numeric.add(numeric.mul(i,simpleroots[0]),numeric.mul(j,simpleroots[1]))
        })})
        rootgrid = _.flatten(rootgrid,true)
+
+
+       fundamentalroots = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
 
        var fundamentalgrid = _.range(-2*physwidth,2*physwidth).map(function(i){return _.range(-2*physwidth,2*physwidth).map(function(j){
          return numeric.add(numeric.mul(i,fundamentalroots[0]),numeric.mul(j,fundamentalroots[1]))
        })})
        fundamentalgrid = _.flatten(fundamentalgrid,true)
 
+       // tensorroots = [numeric.add(fundamentalroots[0],fundamentalroots[1]),numeric.add(fundamentalroots[0],numeric.mul(-1,fundamentalroots[1]))]
+       // var tensorgrid = _.range(-2*physwidth,2*physwidth).map(function(i){return _.range(-2*physwidth,2*physwidth).map(function(j){
+       //   return numeric.add(numeric.mul(i,tensorroots[0]),numeric.mul(j,tensorroots[1]))
+       // })})
+       // tensorgrid = _.flatten(tensorgrid,true)
+       
 
-       animtime = 750
+       animtime = 1250
      
         var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
         fundamentalmarker.enter().append('circle')
@@ -199,8 +215,19 @@
         .transition().duration(animtime).ease("elastic")
               .attr('cx',function(d){return xscale(d[0])})
               .attr('cy',function(d){return yscale(d[1])})
-              .attr('r',5)
+              .attr('r',7)
               .attr('class','root');
+
+        // var tensormarker = canvas.selectAll('.tensor').data(tensorgrid)
+        // tensormarker.enter().append('circle')
+        //
+        // tensormarker
+        // .transition().duration(animtime).ease("elastic")
+        //       .attr('cx',function(d){return xscale(d[0])})
+        //       .attr('cy',function(d){return yscale(d[1])})
+        //       .attr('r',4)
+        //       .attr('class','tensor');
+
 
         var rootarrows = canvas.selectAll('.rootarrow').data(simpleroots)
         rootarrows.enter().append('line')
@@ -224,5 +251,38 @@
 
     }
     </script>
+<div style="margin-left:400">
+<x3d width="500px" height="400px">
+  <scene>
+    <shape>
+      <appearance>
+        <material diffuseColor='steelblue'></material>  
+      </appearance>
+      <sphere radius=0.5></sphere>
+    </shape>
+    <transform translation='-3 0 0'> 
+    <shape> 
+        <appearance> 
+        <material diffuseColor='steelblue'></material> 
+        </appearance> 
+        <sphere radius=0.5></sphere> 
+    </shape> 
+    </transform> 
+<Transform translation='-4 0 0'>
+<Shape>
+<IndexedLineSet coordIndex='0 1'>
+<Coordinate DEF='Segment' point='0 0 0 7 0 0'/>
+</IndexedLineSet> 
+<Appearance>
+<Material diffuseColor='1 0 0'/> 
+<LineProperties containerField='lineProperties'>
+<!-- linetype='1' solid -->
+</LineProperties>
+</Appearance>
+</Shape>
+</Transform>
+  </scene>
+</x3d>  
+</div>
   </body>
 </html>
