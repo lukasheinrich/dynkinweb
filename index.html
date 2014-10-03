@@ -157,7 +157,7 @@
        var xscale = d3.scale.linear().domain([-physwidth/2,physwidth/2]).range([0,pxwidth]);
        var yscale = d3.scale.linear().domain([-physheight/2,physheight/2]).range([pxheight,0]);
 
-       d3.select("#canvas").selectAll('*').remove();
+       // d3.select("#canvas").selectAll('*').remove();
        a1 = [1,0]
        a2 = numeric.mul(scale,numeric.dot(rotate(angle),a1))
      
@@ -178,25 +178,44 @@
          return numeric.add(numeric.mul(i,fundamentalroots[0]),numeric.mul(j,fundamentalroots[1]))
        })})
        fundamentalgrid = _.flatten(fundamentalgrid,true)
+
+
+       animtime = 750
      
-        var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid).enter().append('circle')
-        fundamentalmarker.attr('cx',function(d){return xscale(d[0])})
+        var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
+        fundamentalmarker.enter().append('circle')
+
+        fundamentalmarker
+        .transition().duration(animtime).ease("elastic")
+               .attr('cx',function(d){return xscale(d[0])})
                .attr('cy',function(d){return yscale(d[1])})
                .attr('r',2)
                .attr('class','fundamental')
                
-        var rootsmarker = canvas.selectAll('.root').data(rootgrid).enter().append('circle')
-        rootsmarker.attr('cx',function(d){return xscale(d[0])})
+        var rootsmarker = canvas.selectAll('.root').data(rootgrid)
+        rootsmarker.enter().append('circle')
+
+        rootsmarker
+        .transition().duration(animtime).ease("elastic")
+              .attr('cx',function(d){return xscale(d[0])})
               .attr('cy',function(d){return yscale(d[1])})
               .attr('r',5)
               .attr('class','root');
 
-        var rootarrows = canvas.selectAll('.rootarrow').data(simpleroots).enter().append('line')
+        var rootarrows = canvas.selectAll('.rootarrow').data(simpleroots)
+        rootarrows.enter().append('line')
+
+        rootarrows
+        .transition().duration(animtime).ease("elastic")
         .attr('x1',xscale(0)).attr('y1',yscale(0))
         .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
         .attr('class','rootarrow')
 
-        var rootarrows = canvas.selectAll('.fundarrow').data(fundamentalroots).enter().append('line')
+        var fundarrows = canvas.selectAll('.fundarrow').data(fundamentalroots)
+        fundarrows.enter().append('line')
+
+        fundarrows
+        .transition().duration(animtime).ease("elastic")
         .attr('x1',xscale(0)).attr('y1',yscale(0))
         .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
         .attr('class','fundarrow')
