@@ -1,108 +1,136 @@
 <html>
-	<head>
-    <meta charset="UTF-8">
-   <link rel="stylesheet" type="text/css" 
-          href="http://www.x3dom.org/x3dom/release/x3dom.css">
-    </link>
-    <script type="text/javascript" 
-            src="http://www.x3dom.org/x3dom/release/x3dom.js">
-    </script>
-  	<script src="node_modules/d3/d3.js" charset="utf-8"></script>
-    <script src="node_modules/underscore/underscore.js" charset="utf-8"></script>
-    <script src="js/numeric-1.2.6.min.js" charset="utf-8"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <style type="text/css" media="screen">
-    body{
-      background-color:#eee;
-      margin:auto; 
-      color:#111;
-      font-family:Helvetica;
-    }
-    .coord{
-      fill:#eee;
-    }
-    .root{
-      fill:none;
-      stroke:steelblue;
-      stroke-width:3;
-    }
-    .rootarrow{
-      stroke-width:1;
-      stroke:steelblue;
-    }
-    .fundamental{
-      fill:#777;
-    }
-    .fundarrow{
-      stroke-width:1;
-      stroke:#777;
-    }
-    #content{
-      opacity:.75;
-      height:100%;
-      background-color:#eee;
-      margin:auto;      
-      position:fixed;
-      overflow:scroll;
-    }
-    #content{
-      padding:2em;
-      width:300px;
-    }
-    #canvasbox{
-      overflow-x:hidden;
-      overflow-y:hidden;
-      margin:auto;
-      height:100%;
-      width:100%;
-/*      display: table;*/
-    }
-    #legend td{
-    }
-    #legend svg{
-      vertical-align: middle;
-    }
-    .dynkin{
-      background-color:#eee;
-    }
-    </style>
-    <title>Lie Algebras of Rank 2</title>
-	</head>
-	<body>
-    <div id="content">
-    <h1>Lattices of Rank 2 Lie Algebras</h1>
-    <p>
-      Select Dynkin Diagram.
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" 
+  href="http://www.x3dom.org/x3dom/release/x3dom.css">
+</link>
+<script type="text/javascript" 
+src="http://www.x3dom.org/x3dom/release/x3dom.js">
+</script>
+<script src="node_modules/d3/d3.js" charset="utf-8"></script>
+<script src="node_modules/underscore/underscore.js" charset="utf-8"></script>
+<script src="js/numeric-1.2.6.min.js" charset="utf-8"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<style type="text/css" media="screen">
+body{
+  background-color:#eee;
+  margin:auto; 
+  color:#111;
+  font-family:Helvetica;
+}
+.coord{
+  fill:#eee;
+}
+.root{
+  fill:none;
+  stroke:steelblue;
+  stroke-width:3;
+}
+.rootarrow{
+  stroke-width:1;
+  stroke:steelblue;
+}
+.fundamental{
+  fill:#777;
+}
+.fundarrow{
+  stroke-width:1;
+  stroke:#777;
+}
+#content{
+  opacity:.75;
+  height:100%;
+  background-color:#eee;
+  margin:auto;      
+  position:fixed;
+  overflow:scroll;
+}
+#content{
+  padding:2em;
+  width:300px;
+}
+#canvasbox{
+  overflow-x:hidden;
+  overflow-y:hidden;
+  margin:auto;
+  height:100%;
+  width:100%;
+  /*      display: table;*/
+}
+#legend td{
+}
+#legend svg{
+  vertical-align: middle;
+}
+.dynkin{
+  background-color:#eee;
+}
+</style>
+<title>Lie Algebras of Rank 2</title>
+</head>
+<body>
+<div id="content">
+  <h1>Lattices of Lie Algebras of Rank Two and Three</h1>
+  <p>
+    Select Dynkin Diagram.
     <form>
-    <input type="radio" name="lie" onclick="drawlattices(1*Math.PI/2,Math.sqrt(1));">    
-    <span style="display:inline-block;">
-      <img alt="Dyn-node n1.png" src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      <img alt="Dyn-2.png" src="http://upload.wikimedia.org/wikipedia/commons/9/9a/Dyn-2.png" width="6" height="24" data-file-width="6" data-file-height="24">
-      <img alt="Dyn-node n2.png" src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
-    </span> 𝖘𝔬₄
+      <input type="radio" name="lie" onclick="drawlattices(1*Math.PI/2,Math.sqrt(1));">    
+      <span style="display:inline-block;">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/9/9a/Dyn-2.png" width="6" height="24" data-file-width="6" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
+      </span> 𝖘𝔬₄
     
-    <input type="radio" name="lie" onclick="drawlattices(2*Math.PI/3,Math.sqrt(1));">
-    <span style="display:inline-block;">
-      <img alt="Dyn-node n1.png" src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      <img alt="Dyn-3.png" src="http://upload.wikimedia.org/wikipedia/commons/b/b3/Dyn-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
-      <img alt="Dyn-node n2.png" src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
-    </span> 𝖘𝔩₃
+      <input type="radio" name="lie" onclick="drawlattices(2*Math.PI/3,Math.sqrt(1));">
+      <span style="display:inline-block;">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/b/b3/Dyn-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
+      </span> 𝖘𝔩₃
     
-    <br/>
+      <br/>
     
-    <input type="radio" name="lie" onclick="drawlattices(3*Math.PI/4,Math.sqrt(2));">
-    <span style="display:inline-block;">
-      <img alt="Dyn-node n1.png" src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      <img alt="Dyn-4b.png" src="http://upload.wikimedia.org/wikipedia/commons/c/c9/Dyn-4b.png" width="8" height="24" data-file-width="8" data-file-height="24">
-      <img alt="Dyn-node n2.png" src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
-    </span> 𝖘𝔭₄
+      <input type="radio" name="lie" onclick="drawlattices(3*Math.PI/4,Math.sqrt(2));">
+      <span style="display:inline-block;">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/c/c9/Dyn-4b.png" width="8" height="24" data-file-width="8" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
+      </span> 𝖘𝔭₄
 
-    <input type="radio" name="lie" onclick="drawlattices(5*Math.PI/6,Math.sqrt(3));">
-    <span style="display:inline-block;" class="dynkin">
-      <img alt="Dyn-node n1.png" src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      <img alt="Dyn-6a.png" src="http://upload.wikimedia.org/wikipedia/commons/6/6d/Dyn-6a.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      <img alt="Dyn-node n2.png" src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
-    </span> 𝔤₂
+      <input type="radio" name="lie" onclick="drawlattices(5*Math.PI/6,Math.sqrt(3));">
+      <span style="display:inline-block;" class="dynkin">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/0/0a/Dyn-node_n1.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/6/6d/Dyn-6a.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/b/b8/Dyn-node_n2.png" width="9" height="24" data-file-width="9" data-file-height="24">
+      </span> 𝔤₂
+      <br/>
+
+      <input type="radio" name="lie" onclick="drawrank3('c3');">
+      <span style="display:inline-block;">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/a/a0/Dyn2-4b.png" width="8" height="24" data-file-width="8" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+      </span> 𝖘𝔭₆
+      <br/>
+      <input type="radio" name="lie" onclick="drawrank3('b3');">
+      <span style="display:inline-block;">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/4/48/Dyn2-4a.png" width="8" height="24" data-file-width="8" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+      </span> 𝖘𝔬₇
+      <br/>
+      <input type="radio" name="lie" onclick="drawrank3('a3');">
+      <span style="display:inline-block;">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="8" height="24" data-file-width="8" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
+      </span> 𝖘𝔬₆≃ 𝖘𝔩₄
     </form>
   </p>      
   <p>
@@ -111,157 +139,178 @@
   <p>    
     Legend:
     <div id="legend">
-    <table>
-      <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=2 class="fundamental"></circle></svg> fundamental weight</td></tr>
-      <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=5 class="root"></circle></svg> root lattice point</td></tr>
-      <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="rootarrow"></circle></svg> simple root</td></tr>
-      <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="fundarrow"></circle></svg> fundamental dominant weight</td></tr>
-    </table>
-    </div>
+      <table>
+        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=2 class="fundamental"></circle></svg> fundamental weight</td></tr>
+        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=5 class="root"></circle></svg> root lattice point</td></tr>
+        <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="rootarrow"></circle></svg> simple root</td></tr>
+          <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="fundarrow"></circle></svg> fundamental dominant weight</td></tr>
+          </table>
+        </div>
 
-  </p>
-  <p>
-    Various things can be deduced by eye. The index of the root lattice as a sublattice of the fundamental lattice is the center of the universally covering group with that Lie Algebra.
-    For G2, for example, we see that the group is centerless. For Spin(4) which has so4 Lie algebra, the center is ℤ₂×ℤ₂
-  </p>
-  </p>
+      </p>
+      <p>
+        Various things can be deduced by eye. The index of the root lattice as a sublattice of the fundamental lattice is the center of the universally covering group with that Lie Algebra.
+        For G2, for example, we see that the group is centerless. For Spin(4) which has so4 Lie algebra, the center is ℤ₂×ℤ₂
+      </p>
+    </p>
     All Groups with the same Lie algebra are constructed as quotients of the universal cover by some central subgroup.  
-  <p>    
+    <p>    
 
 
     </div>
     <div id="canvasbox">
-    <svg id="canvas" width=1500 height=1000>
-    </svg>      
+      <svg id="canvas" width=1500 height=1000>
+      </svg>      
     </div>
+    <div id="scenediv" style="margin-left:400">
+      <x3d width="500px" height="400px" style="border: 0px">
+        <scene id="the_scene">
+        </scene>
+      </x3d>  
+    </div>
+
     <script type="text/javascript" charset="utf-8">
         
-    // var gridcoords = _.range(-10,10).map(function(x){return _.range(-10,10).map(function(y){return [x,y]})})
-    // var gridcoords = _.flatten(gridcoords,true)
-    //
-    // var circles = canvas.selectAll('circle').data(gridcoords).enter().append('circle')
-    // circles.attr('cx',function(d){return xscale(d[0])})
-    //        .attr('cy',function(d){return yscale(d[1])})
-    //        .attr('r',1)
-    //        .attr('class','coord')
 
-     function rotate(angle){
-       return [[Math.cos(angle),-Math.sin(angle)],[Math.sin(angle),Math.cos(angle)]];
-     }
+    function rotate(angle){
+      return [[Math.cos(angle),-Math.sin(angle)],[Math.sin(angle),Math.cos(angle)]];
+    }
 
-     // angle = 3*Math.PI/4
-     // scale = Math.sqrt(2)
-     function drawlattices(angle,scale){
-       var canvas = d3.selectAll('#canvas')
+    function drawlattices(angle,scale){
+      var canvas = d3.selectAll('#canvas')
 
-       var pxwidth   = $('#canvas').width()
-       var pxheight   = $('#canvas').height()
+      var pxwidth   = $('#canvas').width()
+      var pxheight   = $('#canvas').height()
 
-       var physwidth = 10
-       var physheight = physwidth/pxwidth*pxheight
+      var physwidth = 10
+      var physheight = physwidth/pxwidth*pxheight
 
-       var xscale = d3.scale.linear().domain([-physwidth/2,physwidth/2]).range([0,pxwidth]);
-       var yscale = d3.scale.linear().domain([-physheight/2,physheight/2]).range([pxheight,0]);
+      var xscale = d3.scale.linear().domain([-physwidth/2,physwidth/2]).range([0,pxwidth]);
+      var yscale = d3.scale.linear().domain([-physheight/2,physheight/2]).range([pxheight,0]);
 
-       // d3.select("#canvas").selectAll('*').remove();
-       a1 = [1,0]
-       a2 = numeric.mul(scale,numeric.dot(rotate(angle),a1))
+      // d3.select("#canvas").selectAll('*').remove();
+      a1 = [1,0]
+      a2 = numeric.mul(scale,numeric.dot(rotate(angle),a1))
      
 
-       simpleroots = [a1,a2]
-       var cartanmatrix = _.range(2).map(function(i){return _.range(2).map(function(j){
-         return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
-       })})
+      simpleroots = [a1,a2]
+      var cartanmatrix = _.range(2).map(function(i){return _.range(2).map(function(j){
+        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
+      })})
 
-       fundamentalroots = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
+      fundamentalroots = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
 
-       var rootgrid = _.range(-2*physwidth,2*physwidth).map(function(i){return _.range(-2*physwidth,2*physwidth).map(function(j){
-         return numeric.add(numeric.mul(i,a1),numeric.mul(j,a2))
-       })})
-       rootgrid = _.flatten(rootgrid,true)
+      var rootgrid = _.range(-2*physwidth,2*physwidth).map(function(i){return _.range(-2*physwidth,2*physwidth).map(function(j){
+        return numeric.add(numeric.mul(i,a1),numeric.mul(j,a2))
+      })})
+      rootgrid = _.flatten(rootgrid,true)
 
-       var fundamentalgrid = _.range(-2*physwidth,2*physwidth).map(function(i){return _.range(-2*physwidth,2*physwidth).map(function(j){
-         return numeric.add(numeric.mul(i,fundamentalroots[0]),numeric.mul(j,fundamentalroots[1]))
-       })})
-       fundamentalgrid = _.flatten(fundamentalgrid,true)
+      var fundamentalgrid = _.range(-2*physwidth,2*physwidth).map(function(i){return _.range(-2*physwidth,2*physwidth).map(function(j){
+        return numeric.add(numeric.mul(i,fundamentalroots[0]),numeric.mul(j,fundamentalroots[1]))
+      })})
+      fundamentalgrid = _.flatten(fundamentalgrid,true)
 
 
-       animtime = 750
+      animtime = 750
      
-        var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
-        fundamentalmarker.enter().append('circle')
+      var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
+      fundamentalmarker.enter().append('circle')
 
-        fundamentalmarker
-        .transition().duration(animtime).ease("elastic")
-               .attr('cx',function(d){return xscale(d[0])})
-               .attr('cy',function(d){return yscale(d[1])})
-               .attr('r',2)
-               .attr('class','fundamental')
+      fundamentalmarker
+      .transition().duration(animtime).ease("elastic")
+      .attr('cx',function(d){return xscale(d[0])})
+      .attr('cy',function(d){return yscale(d[1])})
+      .attr('r',2)
+      .attr('class','fundamental')
                
-        var rootsmarker = canvas.selectAll('.root').data(rootgrid)
-        rootsmarker.enter().append('circle')
-
-        rootsmarker
-        .transition().duration(animtime).ease("elastic")
-              .attr('cx',function(d){return xscale(d[0])})
-              .attr('cy',function(d){return yscale(d[1])})
-              .attr('r',5)
-              .attr('class','root');
-
-        var rootarrows = canvas.selectAll('.rootarrow').data(simpleroots)
-        rootarrows.enter().append('line')
-
-        rootarrows
-        .transition().duration(animtime).ease("elastic")
-        .attr('x1',xscale(0)).attr('y1',yscale(0))
-        .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
-        .attr('class','rootarrow')
-
-        var fundarrows = canvas.selectAll('.fundarrow').data(fundamentalroots)
-        fundarrows.enter().append('line')
-
-        fundarrows
-        .transition().duration(animtime).ease("elastic")
-        .attr('x1',xscale(0)).attr('y1',yscale(0))
-        .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
-        .attr('class','fundarrow')
+      var rootsmarker = canvas.selectAll('.root').data(rootgrid)
+      rootsmarker.enter().append('circle')
+        
+      rootsmarker
+      .transition().duration(animtime).ease("elastic")
+      .attr('cx',function(d){return xscale(d[0])})
+      .attr('cy',function(d){return yscale(d[1])})
+      .attr('r',5)
+      .attr('class','root');
+        
+      var rootarrows = canvas.selectAll('.rootarrow').data(simpleroots)
+      rootarrows.enter().append('line')
+        
+      rootarrows
+      .transition().duration(animtime).ease("elastic")
+      .attr('x1',xscale(0)).attr('y1',yscale(0))
+      .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
+      .attr('class','rootarrow')
+        
+      var fundarrows = canvas.selectAll('.fundarrow').data(fundamentalroots)
+      fundarrows.enter().append('line')
+        
+      fundarrows
+      .transition().duration(animtime).ease("elastic")
+      .attr('x1',xscale(0)).attr('y1',yscale(0))
+      .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
+      .attr('class','fundarrow')
         
         
+    }
 
+
+    // from a CholeskyDecomposition in mathematica
+    // cartan matrix has a decomposition: D*S where D is diagonal and
+    // S is symmetric. we can Cholesky Decompose S into L^T.L 
+    // and the vectors are given by sqrt(D)*L^T
+    
+    rank3data = 
+    {'a3':{
+      'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
+      'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]},
+      'b3':{
+        'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.408248]],
+        'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]
+      },
+      'c3':{
+        'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
+        'cartanmatrix':[[2,-1,0],[-1,2,-2],[0,-1,2]]
+      }
+    }
+
+    function drawrank3(dynkin){
+      simpleroots3d = rank3data[dynkin]['simpleroots']
+      cartanmatrixd3d = rank3data[dynkin]['cartanmatrix']
+
+      rootlattice3d = _.range(-2,3).map(function(i){return _.range(-2,3).map(function(j){return _.range(-2,3).map(function(k){
+        return numeric.add(numeric.mul(i,simpleroots3d[0]),numeric.mul(j,simpleroots3d[1]),numeric.mul(k,simpleroots3d[2]))
+      })})})
+      var rootlattice3d = _.flatten(rootlattice3d,1)
+      var rootlattice3d = _.flatten(rootlattice3d,1)
+
+
+      fundamentalroots3d = numeric.dot(numeric.inv(cartanmatrixd3d),simpleroots3d)
+
+      fundlattice3d = _.range(-3,4).map(function(i){return _.range(-3,4).map(function(j){return _.range(-3,4).map(function(k){
+        return numeric.add(numeric.mul(i,fundamentalroots3d[0]),numeric.mul(j,fundamentalroots3d[1]),numeric.mul(k,fundamentalroots3d[2]))
+      })})})
+      var fundlattice3d = _.flatten(fundlattice3d,1)
+      var fundlattice3d = _.flatten(fundlattice3d,1)
+
+      var root3dspheres = d3.select('#the_scene').selectAll('.sphere')
+      root3dspheres.data(rootlattice3d).enter().append('transform').attr('class','blob')
+      .attr('translation',function(d){return d.join(' ')}).append('shape')
+      .each(function(d){
+        d3.select(this).append('appearance').append('material')
+        .attr('diffuseColor','steelblue')
+        .attr('transparency',0.5)
+        d3.select(this).append('sphere').attr('radius',0.03)
+      })
+    
+      var fundamental3dspheres = d3.select('#the_scene').selectAll('.sphere')
+      fundamental3dspheres.data(fundlattice3d).enter().append('transform').attr('class','blob')
+      .attr('translation',function(d){return d.join(' ')}).append('shape')
+      .each(function(d){
+        d3.select(this).append('appearance').append('material').attr('diffuseColor','#995555')
+        d3.select(this).append('sphere').attr('radius',0.02)
+      })
     }
     </script>
-<div style="margin-left:400">
-<x3d width="500px" height="400px">
-  <scene>
-    <shape>
-      <appearance>
-        <material diffuseColor='steelblue'></material>  
-      </appearance>
-      <sphere radius=0.5></sphere>
-    </shape>
-    <transform translation='-3 0 0'> 
-    <shape> 
-        <appearance> 
-        <material diffuseColor='steelblue'></material> 
-        </appearance> 
-        <sphere radius=0.5></sphere> 
-    </shape> 
-    </transform> 
-<Transform translation='-4 0 0'>
-<Shape>
-<IndexedLineSet coordIndex='0 1'>
-<Coordinate DEF='Segment' point='0 0 0 7 0 0'/>
-</IndexedLineSet> 
-<Appearance>
-<Material diffuseColor='1 0 0'/> 
-<LineProperties containerField='lineProperties'>
-<!-- linetype='1' solid -->
-</LineProperties>
-</Appearance>
-</Shape>
-</Transform>
-  </scene>
-</x3d>  
-</div>
   </body>
-</html>
+  </html>
