@@ -31,11 +31,11 @@ body{
   stroke:steelblue;
 }
 .fundamental{
-  fill:#777;
+  fill:#995555;
 }
 .fundarrow{
   stroke-width:1;
-  stroke:#777;
+  stroke:#995555;
 }
 #content{
   opacity:.75;
@@ -44,10 +44,13 @@ body{
   margin:auto;      
   position:fixed;
   overflow:scroll;
-}
-#content{
+  z-index:1;
   padding:2em;
   width:300px;
+}
+#canvas{
+   width:1500px;
+   height:1000px
 }
 #canvasbox{
   overflow-x:hidden;
@@ -65,6 +68,13 @@ body{
 .dynkin{
   background-color:#eee;
 }
+
+#x3dbox{
+  width:1500px;
+  height:1000px;
+  border:1px solid black;
+}
+
 </style>
 <title>Lie Algebras of Rank 2</title>
 </head>
@@ -159,14 +169,6 @@ body{
 
     </div>
     <div id="canvasbox">
-      <svg id="canvas" width=1500 height=1000>
-      </svg>      
-    </div>
-    <div id="scenediv" style="margin-left:400">
-      <x3d width="500px" height="400px" style="border: 0px">
-        <scene id="the_scene">
-        </scene>
-      </x3d>  
     </div>
 
     <script type="text/javascript" charset="utf-8">
@@ -177,6 +179,10 @@ body{
     }
 
     function drawlattices(angle,scale){
+      d3.selectAll('x3d').remove()
+      if($('#canvas').length == 0){
+        d3.select('#canvasbox').append('svg').attr('id','canvas')
+      }
       var canvas = d3.selectAll('#canvas')
 
       var pxwidth   = $('#canvas').width()
@@ -260,34 +266,37 @@ body{
     // S is symmetric. we can Cholesky Decompose S into L^T.L 
     // and the vectors are given by sqrt(D)*L^T
     
-    rank3data = 
-    {'a3':{
-      'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
-      'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]},
-      'b3':{
-        'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.408248]],
-        'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]
-      },
-      'c3':{
-        'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
-        'cartanmatrix':[[2,-1,0],[-1,2,-2],[0,-1,2]]
-      }
-    }
 
     function drawrank3(dynkin){
-      simpleroots3d = rank3data[dynkin]['simpleroots']
-      cartanmatrixd3d = rank3data[dynkin]['cartanmatrix']
+      d3.select("#canvasbox").selectAll('*').remove();
+      d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene').attr('id','the_scene');
 
-      rootlattice3d = _.range(-2,3).map(function(i){return _.range(-2,3).map(function(j){return _.range(-2,3).map(function(k){
+      var rank3data = 
+      {'a3':{
+          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.816497]],
+          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]},
+        'b3':{
+          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.408248]],
+          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-2,2]]
+        },
+        'c3':{
+          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
+          'cartanmatrix':[[2,-1,0],[-1,2,-2],[0,-1,2]]
+        },
+      }
+      
+      var simpleroots3d = rank3data[dynkin]['simpleroots']
+      var cartanmatrixd3d = rank3data[dynkin]['cartanmatrix']
+
+      var rootlattice3d = _.range(-2,3).map(function(i){return _.range(-2,3).map(function(j){return _.range(-2,3).map(function(k){
         return numeric.add(numeric.mul(i,simpleroots3d[0]),numeric.mul(j,simpleroots3d[1]),numeric.mul(k,simpleroots3d[2]))
       })})})
       var rootlattice3d = _.flatten(rootlattice3d,1)
       var rootlattice3d = _.flatten(rootlattice3d,1)
 
+      var fundamentalroots3d = numeric.dot(numeric.inv(cartanmatrixd3d),simpleroots3d)
 
-      fundamentalroots3d = numeric.dot(numeric.inv(cartanmatrixd3d),simpleroots3d)
-
-      fundlattice3d = _.range(-3,4).map(function(i){return _.range(-3,4).map(function(j){return _.range(-3,4).map(function(k){
+      var fundlattice3d = _.range(-3,4).map(function(i){return _.range(-3,4).map(function(j){return _.range(-3,4).map(function(k){
         return numeric.add(numeric.mul(i,fundamentalroots3d[0]),numeric.mul(j,fundamentalroots3d[1]),numeric.mul(k,fundamentalroots3d[2]))
       })})})
       var fundlattice3d = _.flatten(fundlattice3d,1)
@@ -310,6 +319,7 @@ body{
         d3.select(this).append('appearance').append('material').attr('diffuseColor','#995555')
         d3.select(this).append('sphere').attr('radius',0.02)
       })
+      x3dom.reload()
     }
     </script>
   </body>
