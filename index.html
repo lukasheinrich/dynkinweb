@@ -9,6 +9,7 @@ src="http://www.x3dom.org/x3dom/release/x3dom.js">
 </script>
 <script src="node_modules/d3/d3.js" charset="utf-8"></script>
 <script src="node_modules/underscore/underscore.js" charset="utf-8"></script>
+<script src="js/m4th.min.js"></script>
 <script src="js/numeric-1.2.6.min.js" charset="utf-8"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <style type="text/css" media="screen">
@@ -202,7 +203,6 @@ body{
       var xscale = d3.scale.linear().domain([-physwidth/2,physwidth/2]).range([0,pxwidth]);
       var yscale = d3.scale.linear().domain([-physheight/2,physheight/2]).range([pxheight,0]);
 
-      // d3.select("#canvas").selectAll('*').remove();
       a1 = [1,0]
       a2 = numeric.mul(scale,numeric.dot(rotate(angle),a1))
      
@@ -277,9 +277,12 @@ body{
 
     function drawrank3(dynkin){
       d3.select("#canvasbox").selectAll('*').remove();
-      var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
-      scene.attr('id','the_scene');
-      scene.append('viewpoint').attr( "position", "0 0 2" )
+      if($('#x3dbox').length == 0){
+        var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
+        scene.attr('id','the_scene');
+        scene.append('viewpoint').attr( "position", "0 0 2" )
+      }
+      
 
       var rank3data = 
       {'a3':{
@@ -312,23 +315,42 @@ body{
       var fundlattice3d = _.flatten(fundlattice3d,1)
       var fundlattice3d = _.flatten(fundlattice3d,1)
 
-      var root3dspheres = d3.select('#the_scene').selectAll('.sphere')
-      root3dspheres.data(rootlattice3d).enter().append('transform').attr('class','blob')
-      .attr('translation',function(d){return d.join(' ')}).append('shape')
-      .each(function(d){
+      var root3dspheres = d3.select('#the_scene').selectAll('.sphere').data(rootlattice3d)
+      root3dspheres.enter().append('transform').attr('class','rootblob')
+      .append('shape')
+      .each(function(){
         d3.select(this).append('appearance').append('material')
         .attr('diffuseColor','steelblue')
         .attr('transparency',0.5)
-        d3.select(this).append('sphere').attr('radius',0.03)
-      })
-    
-      var fundamental3dspheres = d3.select('#the_scene').selectAll('.sphere')
-      fundamental3dspheres.data(fundlattice3d).enter().append('transform').attr('class','blob')
-      .attr('translation',function(d){return d.join(' ')}).append('shape')
-      .each(function(d){
-        d3.select(this).append('appearance').append('material').attr('diffuseColor','#995555')
         d3.select(this).append('sphere').attr('radius',0.02)
       })
+    
+      d3.selectAll('.rootblob').attr('translation',function(d){return d.join(' ')})
+    
+      var fundamental3dspheres = d3.select('#the_scene').selectAll('.sphere').data(fundlattice3d)
+      fundamental3dspheres.enter().append('transform').attr('class','fundblob')
+      .append('shape')
+      .each(function(d){
+        d3.select(this).append('appearance').append('material').attr('diffuseColor','#995555')
+        d3.select(this).append('sphere').attr('radius',0.01)
+      })
+      
+      d3.selectAll('.fundblob').attr('translation',function(d){return d.join(' ')})
+      
+      rootlines = d3.select('#the_scene').selectAll('.rootline').data(simpleroots3d).enter().append('shape').attr('class','rootline')
+      rootlines = d3.select('#the_scene').selectAll('.rootline')
+      rootlines.append('appearance').append('material').attr('emissiveColor','steelblue')
+      rootlines.append('lineset').attr('color','steelblue').append('coordinate')
+      .attr('point',function(d){return '0 0 0 '+d.join(' ')})
+
+      fundlines = d3.select('#the_scene')
+      .selectAll('.fundline').data(fundamentalroots3d).enter().append('shape').attr('class','fundline')
+      fundlines = d3.select('#the_scene').selectAll('.fundline')
+      fundlines.append('appearance').append('material').attr('emissiveColor','#995555')
+      fundlines.append('lineset')
+      .append('coordinate').attr('point',function(d){return '0 0 0 '+d.join(' ')})
+
+      
       x3dom.reload()
     }
     </script>
