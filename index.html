@@ -50,8 +50,8 @@ body{
   width:300px;
 }
 #canvas{
-   width:1500px;
-   height:1000px
+   width:100%;
+   height:100%
 }
 #canvasbox{
   overflow-x:hidden;
@@ -78,8 +78,8 @@ body{
 }
 
 #x3dbox{
-  width:1500px;
-  height:1000px;
+  width:100%;
+  height:100%;
   border:1px solid black;
 }
 
@@ -161,7 +161,7 @@ body{
       <table>
         <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=2 class="fundamental"></circle></svg> fundamental weight</td></tr>
         <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=5 class="root"></circle></svg> root lattice point</td></tr>
-        <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="rootarrow"></circle></svg> simple root</td></tr>
+        <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="rootarrow"></circle></svg> root</td></tr>
           <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="fundarrow"></circle></svg> fundamental dominant weight</td></tr>
           </table>
         </div>
@@ -181,7 +181,56 @@ body{
     </div>
 
     <script type="text/javascript" charset="utf-8">
-        
+
+    aa1 = [1,0]
+    aa2 = [-0.5,0.866025]
+    
+    function cartanelement(beta,alpha){
+      if(numeric.dot(alpha,alpha) < 0.01){return 0;}
+      return Math.round(2*numeric.dot(beta,alpha)/numeric.dot(alpha,alpha))
+    }
+    
+    function vecinlist(vec,list){
+      for(var i=0;i<list.length;i++){
+        if(numeric.norm2(numeric.add(vec,numeric.mul(-1,list[i]))) < 0.01){return true;}
+      }
+      return false
+    }
+    
+    function allroots(simpleroots){
+      var roots = simpleroots
+      while(true){
+        newroots = []
+        for(var i=0;i<roots.length;i++){
+          var negroot = numeric.mul(-1,roots[i])
+          if(!vecinlist(negroot,roots)){roots.push(negroot)}
+          //reflect all roots over root i and add string of roots
+          for(var j=0;j<roots.length;j++){
+            if(Math.abs(1-Math.abs(numeric.dot(roots[i],roots[j])/numeric.norm2(roots[i])/numeric.norm2(roots[j])))>0.1){
+              console.log('i:' + i + ' j:' + j)
+              nreflect = cartanelement(roots[i],roots[j])
+              for(var k=1;k<Math.abs(nreflect)+1;k++){
+                reflected = numeric.add(roots[i],numeric.mul(nreflect > 0 ? -k : k,roots[j]))
+                console.log('reflected' + reflected)
+                if(reflected[0] == 0 && reflected[1] == 0){
+                  debugger;
+                }
+                if(!vecinlist(reflected,roots) && !vecinlist(reflected,newroots)){
+                  newroots.push(reflected)
+                }
+              }
+            }
+          }
+        }
+        // debugger;
+        console.log('newroots')
+        console.log(newroots.length)
+        if(!newroots.length){break;}
+        roots = roots.concat(newroots)
+      }
+      return roots
+    }
+
 
     function rotate(angle){
       return [[Math.cos(angle),-Math.sin(angle)],[Math.sin(angle),Math.cos(angle)]];
@@ -247,8 +296,10 @@ body{
       .attr('r',5)
       .attr('class','root');
         
-      var rootarrows = canvas.selectAll('.rootarrow').data(simpleroots)
+      console.log(allroots(simpleroots))
+      var rootarrows = canvas.selectAll('.rootarrow').data(allroots(simpleroots))
       rootarrows.enter().append('line')
+      rootarrows.exit().remove()
         
       rootarrows
       .transition().duration(animtime).ease("elastic")
@@ -274,13 +325,12 @@ body{
     // S is symmetric. we can Cholesky Decompose S into L^T.L 
     // and the vectors are given by sqrt(D)*L^T
     
-
     function drawrank3(dynkin){
       d3.select("#canvasbox").selectAll('*').remove();
       if($('#x3dbox').length == 0){
         var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
         scene.attr('id','the_scene');
-        scene.append('viewpoint').attr( "position", "0 0 2" )
+        scene.append('viewpoint').attr( "position", "0 0 5" )
       }
       
 
@@ -301,7 +351,7 @@ body{
       var simpleroots3d = rank3data[dynkin]['simpleroots']
       var cartanmatrixd3d = rank3data[dynkin]['cartanmatrix']
 
-      var rootlattice3d = _.range(-2,3).map(function(i){return _.range(-2,3).map(function(j){return _.range(-2,3).map(function(k){
+      var rootlattice3d = _.range(-3,4).map(function(i){return _.range(-3,4).map(function(j){return _.range(-3,4).map(function(k){
         return numeric.add(numeric.mul(i,simpleroots3d[0]),numeric.mul(j,simpleroots3d[1]),numeric.mul(k,simpleroots3d[2]))
       })})})
       var rootlattice3d = _.flatten(rootlattice3d,1)
@@ -309,7 +359,7 @@ body{
 
       var fundamentalroots3d = numeric.dot(numeric.inv(cartanmatrixd3d),simpleroots3d)
 
-      var fundlattice3d = _.range(-3,4).map(function(i){return _.range(-3,4).map(function(j){return _.range(-3,4).map(function(k){
+      var fundlattice3d = _.range(-4,5).map(function(i){return _.range(-4,5).map(function(j){return _.range(-4,5).map(function(k){
         return numeric.add(numeric.mul(i,fundamentalroots3d[0]),numeric.mul(j,fundamentalroots3d[1]),numeric.mul(k,fundamentalroots3d[2]))
       })})})
       var fundlattice3d = _.flatten(fundlattice3d,1)
@@ -337,7 +387,12 @@ body{
       
       d3.selectAll('.fundblob').attr('translation',function(d){return d.join(' ')})
       
-      rootlines = d3.select('#the_scene').selectAll('.rootline').data(simpleroots3d).enter().append('shape').attr('class','rootline')
+
+      var all3droots = allroots(simpleroots3d)
+
+      
+      
+      rootlines = d3.select('#the_scene').selectAll('.rootline').data(all3droots).enter().append('shape').attr('class','rootline')
       rootlines = d3.select('#the_scene').selectAll('.rootline')
       rootlines.append('appearance').append('material').attr('emissiveColor','steelblue')
       rootlines.append('lineset').attr('color','steelblue').append('coordinate')
