@@ -40,6 +40,7 @@ body{
   stroke:#995555;
 }
 #content{
+  font-size:120%;
   opacity:.75;
   height:100%;
   background-color:#eee;
@@ -158,7 +159,7 @@ body{
     </form>
   </p>      
   <p>
-    This small demo will draw the fundamental weight lattice as well as the root lattice of the semi-simple Lie algebra associated to the selected Dynkin diagram.
+    This small demo will draw the fundamental weight lattice as well as the root lattice of the semi-simple Lie algebra associated to the selected Dynkin diagram. For the rank three algebras, WebGL must be enabled to view it (Google Chrome does this by default.)
   </p>
   <p>    
     Legend:
@@ -177,10 +178,10 @@ body{
     For G2, for example, we see that the group is centerless. For Spin(4) which has so4 Lie algebra, the center is ℤ₂×ℤ₂ (we can see from the lattices that it must be a finite abelian group of 4 elements, so i could be ℤ₄ or ℤ₂×ℤ₂). Also for 𝖘𝔩₃ we see that the index of the root lattice and weight lattice is 3. I.e. the center of 𝖘𝔩₃ is ℤ₃. Additionally we can only quotient out the entire center since 3 is a prime number already. Therefore there are no intermediate groups between the universal cover and the centerless adjoint group. Finally for 𝖘𝔭₄ we see that the root lattice is twice as large, i.e. the center of Sp(4,ℂ) is ℤ₂.
       </p>
     </p>
-    All Groups with the same Lie algebra are constructed as quotients of the universal cover by some central subgroup.  
+    All Groups with the same Lie algebra are constructed as quotients of the universal cover by some central subgroup. I.e. Spin(4,ℂ) has center ℤ₂×ℤ₂. Quotienting out ℤ₂ we get SO(4,ℂ) which has fundamental group (first homotopy group ℤ₂), i.e. exactly what we quotiented out. and center ℤ₂, i.e. what's left of the center. Quotienting out the entire Center of the group we arrive at the (now centerless) Adjoint group, whose weight lattice is exactly the root lattice.
     <p>    
 
-
+    contact: lukas.heinrich (at) cern.ch
     </div>
     <div id="canvasbox">
     </div>
