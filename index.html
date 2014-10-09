@@ -74,6 +74,10 @@ body{
   margin:0;
 }
 
+.algname{
+  font-size: 140%;
+}
+
 .dynkin{
   background-color:#eee;
 }
@@ -98,14 +102,14 @@ body{
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/9/9a/Dyn-2.png" width="6" height="24" data-file-width="6" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      </span> 𝖘𝔬₄
+      </span> <span class='algname'>𝖘𝔬₄</span>
     
       <input type="radio" name="lie" onclick="drawlattices(2*Math.PI/3,Math.sqrt(1));">
       <span class="dynkindiagram">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      </span> 𝖘𝔩₃
+      </span> <span class='algname'>𝖘𝔩₃</span>
     
       <br/>
     
@@ -114,14 +118,14 @@ body{
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/4/48/Dyn2-4a.png" width="8" height="24" data-file-width="8" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      </span> 𝖘𝔭₄
+      </span> <span class='algname'>𝖘𝔭₄</span>
 
       <input type="radio" name="lie" onclick="drawlattices(5*Math.PI/6,Math.sqrt(3));">
       <span class="dynkindiagram" class="dynkin">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/3/38/Dyn2-6a.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      </span> 𝔤₂
+      </span> <span class='algname'>𝔤₂</span>
       <br/>
 
       <input type="radio" name="lie" onclick="drawrank3('a3');">
@@ -131,7 +135,7 @@ body{
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      </span> 𝖘𝔬₆≃ 𝖘𝔩₄
+      </span> <span class='algname'>𝖘𝔬₆≃ 𝖘𝔩₄</span>
       <br/>
       <input type="radio" name="lie" onclick="drawrank3('b3');">
       <span class="dynkindiagram">
@@ -140,7 +144,7 @@ body{
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      </span> 𝖘𝔬₇
+      </span> <span class='algname'>𝖘𝔬₇</span>
       <br/>
       <input type="radio" name="lie" onclick="drawrank3('c3');">
       <span class="dynkindiagram">
@@ -149,7 +153,7 @@ body{
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/c/c8/Dyn2-3.png" width="6" height="24" data-file-width="6" data-file-height="24">
         <img src="http://upload.wikimedia.org/wikipedia/commons/f/fb/Dyn2-node.png" width="9" height="24" data-file-width="9" data-file-height="24">
-      </span> 𝖘𝔭₆
+      </span> <span class='algname'>𝖘𝔭₆</span>
       
     </form>
   </p>      
@@ -332,6 +336,8 @@ body{
         var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
         scene.attr('id','the_scene');
         scene.append('viewpoint').attr( "position", "0 0 5" )
+        // .attr( "position", "5 0 0" )
+        // .attr('orientation','0 1 0 1.57079633')
       }
       
 
