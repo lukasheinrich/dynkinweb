@@ -233,7 +233,6 @@ body{
             }
           }
         }
-        // debugger;
         if(!newroots.length){break;}
         roots = roots.concat(newroots)
       }
@@ -245,10 +244,10 @@ body{
       return [[Math.cos(angle),-Math.sin(angle)],[Math.sin(angle),Math.cos(angle)]];
     }
     
-    function samesidezero(vertex,facevects,x){
+    function samesidezero(facevects,x){
       var facediff = numeric.sub(facevects[0],facevects[1]);
-      var normalorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(vertex)[0]])
-      var testorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(numeric.sub(x,vertex))[0]])
+      var normalorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(facevects[0])[0]])
+      var testorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(numeric.sub(x,facevects[0]))[0]])
 
       return !(Math.sign(normalorient) == Math.sign(testorient)); 
     }
@@ -336,20 +335,12 @@ body{
 
       var cmb = Combinatorics.combination(_.range(allrootstest.length),2).toArray()
 
-      var testedge = _.map(cmb,function(d){return [allrootstest [d[0]], allrootstest [d[1]]]})
+      var edges = _.map(cmb,function(d){return [numeric.transpose([allrootstest[d[0]]]),numeric.transpose([allrootstest[d[1]]])]})
 
-
-
-      var firstvertex = _.map(cmb,function(d){return numeric.transpose([allrootstest[d[0]]])})
-      var secondvertex = _.map(cmb,function(d){return numeric.transpose([allrootstest[d[1]]])})
-
-      var convexedges = _.map(_.filter(_.zip(firstvertex,secondvertex),
+      var convexedges = _.filter(edges,
                       function(x){return _.every(_.map(allrootstest,
-                      function(d){return samesidezero(x[1],[x[0],x[1]],numeric.transpose([d]))}))}),
-                      function(z){return [z[0],z[1]]});
-
-      // debugger;
-      
+                      function(d){return samesidezero(x,numeric.transpose([d]))}))})
+                            
       canvas.selectAll('.edge').data(convexedges).enter()
             .append('line')
             .attr('class','edge')
