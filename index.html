@@ -316,7 +316,9 @@ body{
       var rephullvertices = reflectweyl([highestweight],roots)
       var cmb = Combinatorics.combination(_.range(rephullvertices.length),rank).toArray()
 
-      var edges = _.map(cmb,function(d){return [numeric.transpose([rephullvertices[d[0]]]),numeric.transpose([rephullvertices[d[1]]])]})
+      var edges = _.map(cmb,function(d){
+        return _.map(d,function(x){return numeric.transpose([rephullvertices[x]])});
+      })
 
       var convexedges = _.filter(edges,
                       function(edge){return _.every(_.map(rephullvertices,
@@ -453,6 +455,23 @@ body{
             .attr('x2',function(d){return xscale(d[1][0])})
             .attr('y2',function(d){return yscale(d[1][1])})
     }
+    
+    function drawrep3d(data){
+      var repweights = data[0]
+      var convexedges = data[1]
+      var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
+
+      var repspheres = d3.select('#the_scene').selectAll('.sphere').data(repweights)
+      repspheres.enter().append('transform').attr('class','repblob')
+      .append('shape')
+      .each(function(){
+        d3.select(this).append('appearance').append('material')
+        .attr('diffuseColor','red')
+        d3.select(this).append('sphere').attr('radius',0.1)
+      })
+    
+      d3.selectAll('.repblob').attr('translation',function(d){return d.join(' ')})
+   }
 
 
     function drawrank3(dynkin){
@@ -497,6 +516,7 @@ body{
       var fundamentalgrid = algebradata['lattices'][0]
       var rootgrid = algebradata['lattices'][1]
       var roots = algebradata['roots']
+      var simpleroots = algebradata['simpleroots']
       var fundweights = algebradata['fundweights']
       
 
@@ -535,7 +555,9 @@ body{
       fundlines.append('lineset')
       .append('coordinate').attr('point',function(d){return '0 0 0 '+d.join(' ')})
 
-      
+      drawrep3d(getrepweights([0,1,0],fundweights,roots,simpleroots))
+
+
       x3dom.reload()
     }
     </script>
