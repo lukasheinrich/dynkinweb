@@ -289,18 +289,66 @@ body{
       }))
     }
     
-    function getlattices(fundamentalroots,fundrange,simpleroots,rootrange){
+    function getlattices(fundweights,fundrange,simpleroots,rootrange){
       var lincombsroot = Combinatorics.cartesianProduct.apply(this,_.map(_.range(simpleroots.length),function(x){return _.range.apply(this,rootrange)})).toArray()
 
       var rootgrid = _.map(lincombsroot,function(x){return numeric.dot(x,simpleroots)})
 
-      var lincombsfund = Combinatorics.cartesianProduct.apply(this,_.map(_.range(fundamentalroots.length),function(x){return _.range.apply(this,fundrange)})).toArray()
+      var lincombsfund = Combinatorics.cartesianProduct.apply(this,_.map(_.range(fundweights.length),function(x){return _.range.apply(this,fundrange)})).toArray()
 
-      var fundamentalgrid = _.map(lincombsfund,function(x){return numeric.dot(x,fundamentalroots)})
+      var fundamentalgrid = _.map(lincombsfund,function(x){return numeric.dot(x,fundweights)})
       return [fundamentalgrid,rootgrid]
     }
     
+    function getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange){
+      var fundweights = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
+
+      var lattices = getlattices(fundweights,fundrange,simpleroots,rootrange)
+
+      var roots = allroots(simpleroots)
+      
+      return {'lattices':lattices,'fundweights':fundweights,'roots':roots,'simpleroots':simpleroots}
+    }
+    
+    function getrepweights(highestcoeff,fundamentalweights,roots,simpleroots){
+      var rank = fundamentalweights.length;
+      var highestweight = numeric.dot(highestcoeff,fundamentalweights)
+      var rephullvertices = reflectweyl([highestweight],roots)
+      var cmb = Combinatorics.combination(_.range(rephullvertices.length),rank).toArray()
+
+      var edges = _.map(cmb,function(d){return [numeric.transpose([rephullvertices[d[0]]]),numeric.transpose([rephullvertices[d[1]]])]})
+
+      var convexedges = _.filter(edges,
+                      function(edge){return _.every(_.map(rephullvertices,
+                      function(testpoint){return samesidezero(edge,numeric.transpose([testpoint]))}))});
+
+
+      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
+
+      var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
+
+      repweights = _.filter(candidategrid,function(x){return isinside(convexedges,numeric.transpose([x]))})
+      return [repweights,convexedges]
+    }
+    
     function drawlattices(angle,scale){
+      var physwidth = 10
+      var a1 = [1,0]
+      var a2 = numeric.mul(scale,numeric.dot(rotate(angle),a1))
+     
+
+      var simpleroots = [a1,a2]
+      var cartanmatrix = _.range(2).map(function(i){return _.range(2).map(function(j){
+        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
+      })})
+
+      var fundrange = [-2*physwidth,2*physwidth]
+      var rootrange = [-2*physwidth,2*physwidth]      
+      var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
+      drawrank2_impl(algebradata)
+    }
+    
+    function drawrank2_impl(algebradata){
       d3.selectAll('x3d').remove()
       if($('#canvas').length == 0){
         d3.select('#canvasbox').append('svg').attr('id','canvas')
@@ -316,26 +364,12 @@ body{
       var xscale = d3.scale.linear().domain([-physwidth/2,physwidth/2]).range([0,pxwidth]);
       var yscale = d3.scale.linear().domain([-physheight/2,physheight/2]).range([pxheight,0]);
 
-      var a1 = [1,0]
-      var a2 = numeric.mul(scale,numeric.dot(rotate(angle),a1))
-     
-
-      var simpleroots = [a1,a2]
-      var cartanmatrix = _.range(2).map(function(i){return _.range(2).map(function(j){
-        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
-      })})
-
-      var fundamentalroots = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
-
-      var latticerange = [-2*physwidth,2*physwidth]
-      var lattices = getlattices(fundamentalroots,latticerange,simpleroots,latticerange)
-
-      var fundamentalgrid = lattices[0]
-      var rootgrid = lattices[1]
-
-      var allroots2d = allroots(simpleroots)
-
-
+      var fundamentalgrid = algebradata['lattices'][0]
+      var rootgrid = algebradata['lattices'][1]
+      var roots = algebradata['roots']
+      var simpleroots = algebradata['simpleroots']
+      var fundweights = algebradata['fundweights']
+      
       animtime = 250
      
       var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
@@ -358,7 +392,7 @@ body{
       .attr('r',5)
       .attr('class','root');
         
-      var rootarrows = canvas.selectAll('.rootarrow').data(allroots2d)
+      var rootarrows = canvas.selectAll('.rootarrow').data(roots)
       rootarrows.enter().append('line')
       rootarrows.exit().remove()
         
@@ -368,7 +402,7 @@ body{
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','rootarrow')
         
-      var fundarrows = canvas.selectAll('.fundarrow').data(fundamentalroots)
+      var fundarrows = canvas.selectAll('.fundarrow').data(fundweights)
       fundarrows.enter().append('line')
         
       fundarrows
@@ -376,29 +410,10 @@ body{
       .attr('x1',xscale(0)).attr('y1',yscale(0))
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
+      
+      drawrep2d(getrepweights([0,1],fundweights,roots,simpleroots))
     }
-    
-    function getrepweights(highestcoeff,fundamentalweights,roots){
-      var rank = fundamentalweights.length;
-      var highestweight = numeric.dot(highestcoeff,fundamentalweights)
-      var rephullvertices = reflectweyl([highestweight],roots)
-      var cmb = Combinatorics.combination(_.range(rephullvertices.length),rank).toArray()
-
-      var edges = _.map(cmb,function(d){return [numeric.transpose([rephullvertices[d[0]]]),numeric.transpose([rephullvertices[d[1]]])]})
-
-      var convexedges = _.filter(edges,
-                      function(edge){return _.every(_.map(rephullvertices,
-                      function(testpoint){return samesidezero(edge,numeric.transpose([testpoint]))}))});
-
-
-      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
-
-      var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
-
-      repweights = _.filter(candidategrid,function(x){return isinside(convexedges,numeric.transpose([x]))})
-      return [repweights,convexedges]
-    }
-        
+            
     function drawrep2d(data){
       var repweights = data[0]
       var convexedges = data[1]
@@ -440,22 +455,12 @@ body{
     }
 
 
-    // from a CholeskyDecomposition in mathematica
-    // cartan matrix has a decomposition: D*S where D is diagonal and
-    // S is symmetric. we can Cholesky Decompose S into L^T.L 
-    // and the vectors are given by sqrt(D)*L^T
-    
     function drawrank3(dynkin){
-      d3.select("#canvasbox").selectAll('*').remove();
-      if($('#x3dbox').length == 0){
-        var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
-        scene.attr('id','the_scene');
-        scene.append('viewpoint').attr( "position", "0 0 5" )
-        // .attr( "position", "5 0 0" )
-        // .attr('orientation','0 1 0 1.57079633')
-      }
-      
-
+      // from a CholeskyDecomposition in mathematica
+      // cartan matrix has a decomposition: D*S where D is diagonal and
+      // S is symmetric. we can Cholesky Decompose S into L^T.L 
+      // and the vectors are given by sqrt(D)*L^T
+    
       var rank3data = 
       {'a3':{
           'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.816497]],
@@ -470,19 +475,32 @@ body{
         },
       }
       
-      var simpleroots3d = rank3data[dynkin]['simpleroots']
-      var cartanmatrixd3d = rank3data[dynkin]['cartanmatrix']
+      var simpleroots = rank3data[dynkin]['simpleroots']
+      var cartanmatrix = rank3data[dynkin]['cartanmatrix']
 
-      var fundamentalroots3d = numeric.dot(numeric.inv(cartanmatrixd3d),simpleroots3d)
-
-      var lattices = getlattices(fundamentalroots3d,[-4,5],simpleroots3d,[-3,4])
-      var fundlattice3d = lattices[0]
-      var rootlattice3d = lattices[1]
+      var fundrange = [-4,5]
+      var rootrange = [-3,4]      
+      var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
+      drawrank3_impl(algebradata)
+    }
+    
+    function drawrank3_impl(algebradata){
+      d3.select("#canvasbox").selectAll('*').remove();
+      if($('#x3dbox').length == 0){
+        var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
+        scene.attr('id','the_scene');
+        scene.append('viewpoint').attr( "position", "0 0 5" )
+        // .attr( "position", "5 0 0" )
+        // .attr('orientation','0 1 0 1.57079633')
+      }
       
-      var all3droots = allroots(simpleroots3d)
+      var fundamentalgrid = algebradata['lattices'][0]
+      var rootgrid = algebradata['lattices'][1]
+      var roots = algebradata['roots']
+      var fundweights = algebradata['fundweights']
       
 
-      var root3dspheres = d3.select('#the_scene').selectAll('.sphere').data(rootlattice3d)
+      var root3dspheres = d3.select('#the_scene').selectAll('.sphere').data(rootgrid)
       root3dspheres.enter().append('transform').attr('class','rootblob')
       .append('shape')
       .each(function(){
@@ -494,7 +512,7 @@ body{
     
       d3.selectAll('.rootblob').attr('translation',function(d){return d.join(' ')})
     
-      var fundamental3dspheres = d3.select('#the_scene').selectAll('.sphere').data(fundlattice3d)
+      var fundamental3dspheres = d3.select('#the_scene').selectAll('.sphere').data(fundamentalgrid)
       fundamental3dspheres.enter().append('transform').attr('class','fundblob')
       .append('shape')
       .each(function(d){
@@ -504,14 +522,14 @@ body{
       
       d3.selectAll('.fundblob').attr('translation',function(d){return d.join(' ')})
       
-      var rootlines = d3.select('#the_scene').selectAll('.rootline').data(all3droots).enter().append('shape').attr('class','rootline')
+      var rootlines = d3.select('#the_scene').selectAll('.rootline').data(roots).enter().append('shape').attr('class','rootline')
       rootlines = d3.select('#the_scene').selectAll('.rootline')
       rootlines.append('appearance').append('material').attr('emissiveColor','steelblue')
       rootlines.append('lineset').attr('color','steelblue').append('coordinate')
       .attr('point',function(d){return '0 0 0 '+d.join(' ')})
 
       var fundlines = d3.select('#the_scene')
-      .selectAll('.fundline').data(fundamentalroots3d).enter().append('shape').attr('class','fundline')
+      .selectAll('.fundline').data(fundweights).enter().append('shape').attr('class','fundline')
       fundlines = d3.select('#the_scene').selectAll('.fundline')
       fundlines.append('appearance').append('material').attr('emissiveColor','#995555')
       fundlines.append('lineset')
