@@ -466,7 +466,8 @@ body{
       .append('shape')
       .each(function(){
         d3.select(this).append('appearance').append('material')
-        .attr('diffuseColor','red')
+        .attr('diffuseColor','green')
+        .attr('transparency',0.5)
         d3.select(this).append('sphere').attr('radius',0.04)
       })
     
