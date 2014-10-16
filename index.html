@@ -32,7 +32,7 @@ body{
 .repmarker{
   fill:none;
   stroke:red;
-  stroke-width:5;
+  stroke-width:4;
 }
 
 
@@ -273,9 +273,11 @@ body{
     }
     
     function samesidezero(facevects,x,debug){
-      var facediff = numeric.sub(facevects[0],facevects[1]);
-      var normalorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(facevects[0])[0]])
-      var testorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(numeric.sub(x,facevects[0]))[0]])
+      var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[0],facevects[i])});
+      
+      var normalorient = numeric.det(_.map(facediffs.concat([facevects[0]]),function(x){return numeric.transpose(x)[0]}))
+      var testorient   = numeric.det(_.map(facediffs.concat([numeric.sub(x,facevects[0])]),function(x){return numeric.transpose(x)[0]}))
+            
       if(Math.abs(normalorient)<0.000001 && !Math.abs(testorient)<0.000001) return false; //in this case the plane goes through the origin, can't decide what's 'in'
       if(Math.abs(testorient)<0.000001) return true; //in this case the test point is on the plane
       return !(Math.sign(normalorient) == Math.sign(testorient)); 
