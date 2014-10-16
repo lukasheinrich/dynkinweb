@@ -28,6 +28,14 @@ body{
   stroke:steelblue;
   stroke-width:3;
 }
+
+.repmarker{
+  fill:none;
+  stroke:red;
+  stroke-width:5;
+}
+
+
 .rootarrow{
   stroke-width:1;
   stroke-dasharray: 5,5;
@@ -252,6 +260,10 @@ body{
       return !(Math.sign(normalorient) == Math.sign(testorient)); 
     }
 
+    function isinside(convexedges,x){
+      return _.every(_.map(convexedges,function(edge){return samesidezero(edge,x)}))
+    }
+    
     function drawlattices(angle,scale){
       d3.selectAll('x3d').remove()
       if($('#canvas').length == 0){
@@ -338,9 +350,24 @@ body{
       var edges = _.map(cmb,function(d){return [numeric.transpose([allrootstest[d[0]]]),numeric.transpose([allrootstest[d[1]]])]})
 
       var convexedges = _.filter(edges,
-                      function(x){return _.every(_.map(allrootstest,
-                      function(d){return samesidezero(x,numeric.transpose([d]))}))})
+                      function(edge){return _.every(_.map(allrootstest,
+                      function(testpoint){return samesidezero(edge,numeric.transpose([testpoint]))}))});
                             
+
+      var repweights = _.filter(rootgrid,function(x){return isinside(convexedges,numeric.transpose([x]))})
+
+
+      var repmarker = canvas.selectAll('.repmarker').data(repweights)
+      repmarker.enter().append('circle')
+      repmarker.exit().remove()  
+      repmarker
+      .transition().duration(animtime).ease("elastic")
+      .attr('cx',function(d){return xscale(d[0])})
+      .attr('cy',function(d){return yscale(d[1])})
+      .attr('r',10)
+      .attr('class','repmarker');
+
+
       canvas.selectAll('.edge').data(convexedges).enter()
             .append('line')
             .attr('class','edge')
