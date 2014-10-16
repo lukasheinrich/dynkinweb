@@ -467,7 +467,7 @@ body{
       .each(function(){
         d3.select(this).append('appearance').append('material')
         .attr('diffuseColor','red')
-        d3.select(this).append('sphere').attr('radius',0.1)
+        d3.select(this).append('sphere').attr('radius',0.04)
       })
     
       d3.selectAll('.repblob').attr('translation',function(d){return d.join(' ')})
@@ -555,7 +555,7 @@ body{
       fundlines.append('lineset')
       .append('coordinate').attr('point',function(d){return '0 0 0 '+d.join(' ')})
 
-      drawrep3d(getrepweights([0,1,0],fundweights,roots,simpleroots))
+      drawrep3d(getrepweights([1,0,0],fundweights,roots,simpleroots))
 
 
       x3dom.reload()
