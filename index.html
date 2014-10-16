@@ -31,7 +31,7 @@ body{
 
 .repmarker{
   fill:none;
-  stroke:red;
+  stroke:#559955;
   stroke-width:4;
 }
 
@@ -51,7 +51,7 @@ body{
 
 .edge{
   stroke-width:1;
-  stroke:red;
+  stroke:#559955;
 }
 
 #content{
@@ -180,15 +180,16 @@ body{
     Legend:
     <div id="legend">
       <table>
-        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=2 class="fundamental"></circle></svg> fundamental weight</td></tr>
-        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=5 class="root"></circle></svg> root lattice point</td></tr>
+        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=2 class="fundamental"></circle></svg>weight</td></tr>
+        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=5 class="root"></circle></svg> root lattice weight</td></tr>
+        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=7 class="repmarker"></circle></svg> fundamental rep weight</td></tr>
         <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="rootarrow"></circle></svg> root</td></tr>
-          <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="fundarrow"></circle></svg> fundamental dominant weight</td></tr>
-          </table>
-        </div>
+        <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="fundarrow"></circle></svg> fundamental dominant weight</td></tr>
+        </table>
+      </div>
 
-      </p>
-      <p>
+    </p>
+    <p>
     Various things can be deduced by eye. The index of the root lattice as a sublattice of the fundamental lattice is the center of the universally covering group with that Lie Algebra.
     For G2, for example, we see that the group is centerless. For Spin(4) which has so4 Lie algebra, the center is ℤ₂×ℤ₂ (we can see from the lattices that it must be a finite abelian group of 4 elements, so i could be ℤ₄ or ℤ₂×ℤ₂). Also for 𝖘𝔩₃ we see that the index of the root lattice and weight lattice is 3. I.e. the center of 𝖘𝔩₃ is ℤ₃. Additionally we can only quotient out the entire center since 3 is a prime number already. Therefore there are no intermediate groups between the universal cover and the centerless adjoint group. Finally for 𝖘𝔭₄ we see that the root lattice is twice as large, i.e. the center of Sp(4,ℂ) is ℤ₂.
       </p>
@@ -278,8 +279,8 @@ body{
       var normalorient = numeric.det(_.map(facediffs.concat([facevects[0]]),function(x){return numeric.transpose(x)[0]}))
       var testorient   = numeric.det(_.map(facediffs.concat([numeric.sub(x,facevects[0])]),function(x){return numeric.transpose(x)[0]}))
             
-      if(Math.abs(normalorient)<0.000001 && !Math.abs(testorient)<0.000001) return false; //in this case the plane goes through the origin, can't decide what's 'in'
-      if(Math.abs(testorient)<0.000001) return true; //in this case the test point is on the plane
+      if(Math.abs(normalorient)<0.001 && !Math.abs(testorient)<0.001) return false; //in this case the plane goes through the origin, can't decide what's 'in'
+      if(Math.abs(testorient)<0.001) return true; //in this case the test point is on the plane
       return !(Math.sign(normalorient) == Math.sign(testorient)); 
     }
 
@@ -372,7 +373,7 @@ body{
       var simpleroots = algebradata['simpleroots']
       var fundweights = algebradata['fundweights']
       
-      animtime = 250
+      animtime = 7500
      
       var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
       fundamentalmarker.enter().append('circle')
@@ -413,7 +414,7 @@ body{
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
       
-      drawrep2d(getrepweights([0,1],fundweights,roots,simpleroots))
+      drawrep2d(getrepweights([1,0],fundweights,roots,simpleroots))
     }
             
     function drawrep2d(data){
@@ -450,6 +451,7 @@ body{
 
 
       canvas.selectAll('.edge').data(convexedges)
+            .transition().duration(animtime).ease("elastic")
             .attr('x1',function(d){return xscale(d[0][0])})
             .attr('y1',function(d){return yscale(d[0][1])})
             .attr('x2',function(d){return xscale(d[1][0])})
@@ -466,8 +468,8 @@ body{
       .append('shape')
       .each(function(){
         d3.select(this).append('appearance').append('material')
-        .attr('diffuseColor','green')
-        .attr('transparency',0.5)
+        .attr('diffuseColor','#559955')
+        .attr('transparency',0.2)
         d3.select(this).append('sphere').attr('radius',0.04)
       })
     
@@ -530,7 +532,7 @@ body{
       .each(function(){
         d3.select(this).append('appearance').append('material')
         .attr('diffuseColor','steelblue')
-        .attr('transparency',0.5)
+        .attr('transparency',0.2)
         d3.select(this).append('sphere').attr('radius',0.02)
       })
     
