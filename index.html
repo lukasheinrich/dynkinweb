@@ -223,7 +223,6 @@ body{
               nreflect = cartanelement(roots[i],roots[j])
               for(var k=1;k<Math.abs(nreflect)+1;k++){
                 reflected = numeric.add(roots[i],numeric.mul(nreflect > 0 ? -k : k,roots[j]))
-                console.log('reflected' + reflected)
                 if(reflected[0] == 0 && reflected[1] == 0){
                   debugger;
                 }
@@ -235,8 +234,6 @@ body{
           }
         }
         // debugger;
-        console.log('newroots')
-        console.log(newroots.length)
         if(!newroots.length){break;}
         roots = roots.concat(newroots)
       }
@@ -248,9 +245,11 @@ body{
       return [[Math.cos(angle),-Math.sin(angle)],[Math.sin(angle),Math.cos(angle)]];
     }
     
-    function isinside(vertex,normal,x){
-      normalorient = numeric.dot(numeric.transpose(vertex),normal)[0][0];
-      testorient = numeric.dot(numeric.transpose(numeric.sub(x,vertex)),normal)[0][0];
+    function samesidezero(vertex,facevects,x){
+      var facediff = numeric.sub(facevects[0],facevects[1]);
+      var normalorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(vertex)[0]])
+      var testorient = numeric.det([numeric.transpose(facediff)[0],numeric.transpose(numeric.sub(x,vertex))[0]])
+
       return !(Math.sign(normalorient) == Math.sign(testorient)); 
     }
 
@@ -314,7 +313,6 @@ body{
       .attr('r',5)
       .attr('class','root');
         
-      console.log(allroots(simpleroots))
       var rootarrows = canvas.selectAll('.rootarrow').data(allroots(simpleroots))
       rootarrows.enter().append('line')
       rootarrows.exit().remove()
@@ -340,14 +338,15 @@ body{
 
       var testedge = _.map(cmb,function(d){return [allrootstest [d[0]], allrootstest [d[1]]]})
 
-      var epsilon = [[0,1],[-1,0]]
 
-      var normals = _.map(cmb,function(d){return numeric.transpose(numeric.dot(epsilon,numeric.transpose([numeric.sub(allrootstest[d[0]],allrootstest[d[1]])])))[0]})
 
       var firstvertex = _.map(cmb,function(d){return numeric.transpose([allrootstest[d[0]]])})
       var secondvertex = _.map(cmb,function(d){return numeric.transpose([allrootstest[d[1]]])})
 
-      var convexedges = _.map(_.filter(_.zip(firstvertex,secondvertex,normals),function(x){return _.every(_.map(allrootstest,function(d){return isinside(x[1],numeric.transpose([x[2]]),numeric.transpose([d]))}))}),function(d){return [d[0],d[1]]});
+      var convexedges = _.map(_.filter(_.zip(firstvertex,secondvertex),
+                      function(x){return _.every(_.map(allrootstest,
+                      function(d){return samesidezero(x[1],[x[0],x[1]],numeric.transpose([d]))}))}),
+                      function(z){return [z[0],z[1]]});
 
       // debugger;
       
@@ -364,17 +363,6 @@ body{
             .attr('x2',function(d){return xscale(d[1][0])})
             .attr('y2',function(d){return yscale(d[1][1])})
 
-      // canvas.selectAll('.edge').data(normals).enter()
-      //       .append('line')
-      //       .attr('class','edge')
-      //
-      // canvas.selectAll('.edge').data(normals).exit().remove()
-      //
-      // canvas.selectAll('.edge').data(normals)
-      //       .attr('x1',function(d){return xscale(0)})
-      //       .attr('y1',function(d){return yscale(0)})
-      //       .attr('x2',function(d){return xscale(d[0])})
-      //       .attr('y2',function(d){return yscale(d[1])})
         
     }
 
