@@ -486,16 +486,19 @@ body{
           'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]},
         'b3':{
           'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.408248]],
-          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-2,2]]
+          'cartanmatrix':[[2,-1,0],[-1,2,-2],[0,-1,2]]
         },
         'c3':{
           'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
-          'cartanmatrix':[[2,-1,0],[-1,2,-2],[0,-1,2]]
+          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-2,2]]
         },
       }
       
       var simpleroots = rank3data[dynkin]['simpleroots']
-      var cartanmatrix = rank3data[dynkin]['cartanmatrix']
+
+      var cartanmatrix = _.range(3).map(function(i){return _.range(3).map(function(j){
+        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
+      })})
 
       var fundrange = [-4,5]
       var rootrange = [-3,4]      
