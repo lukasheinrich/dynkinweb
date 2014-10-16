@@ -9,6 +9,7 @@ src="http://www.x3dom.org/x3dom/release/x3dom.js">
 </script>
 <script src="node_modules/d3/d3.js" charset="utf-8"></script>
 <script src="node_modules/underscore/underscore.js" charset="utf-8"></script>
+<script src="node_modules/js-combinatorics/combinatorics.js"></script>
 <script src="js/m4th.min.js"></script>
 <script src="js/numeric-1.2.6.min.js" charset="utf-8"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -39,6 +40,12 @@ body{
   stroke-width:1;
   stroke:#995555;
 }
+
+.edge{
+  stroke-width:1;
+  stroke:red;
+}
+
 #content{
   font-size:120%;
   opacity:.75;
@@ -202,7 +209,7 @@ body{
       }
       return false
     }
-    
+        
     function allroots(simpleroots){
       var roots = simpleroots
       while(true){
@@ -213,7 +220,6 @@ body{
           //reflect all roots over root i and add string of roots
           for(var j=0;j<roots.length;j++){
             if(Math.abs(1-Math.abs(numeric.dot(roots[i],roots[j])/numeric.norm2(roots[i])/numeric.norm2(roots[j])))>0.1){
-              console.log('i:' + i + ' j:' + j)
               nreflect = cartanelement(roots[i],roots[j])
               for(var k=1;k<Math.abs(nreflect)+1;k++){
                 reflected = numeric.add(roots[i],numeric.mul(nreflect > 0 ? -k : k,roots[j]))
@@ -240,6 +246,12 @@ body{
 
     function rotate(angle){
       return [[Math.cos(angle),-Math.sin(angle)],[Math.sin(angle),Math.cos(angle)]];
+    }
+    
+    function isinside(vertex,normal,x){
+      normalorient = numeric.dot(numeric.transpose(vertex),normal)[0][0];
+      testorient = numeric.dot(numeric.transpose(numeric.sub(x,vertex)),normal)[0][0];
+      return !(Math.sign(normalorient) == Math.sign(testorient)); 
     }
 
     function drawlattices(angle,scale){
@@ -321,7 +333,48 @@ body{
       .attr('x1',xscale(0)).attr('y1',yscale(0))
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
-        
+      
+      var allrootstest = allroots(simpleroots);
+
+      var cmb = Combinatorics.combination(_.range(allrootstest.length),2).toArray()
+
+      var testedge = _.map(cmb,function(d){return [allrootstest [d[0]], allrootstest [d[1]]]})
+
+      var epsilon = [[0,1],[-1,0]]
+
+      var normals = _.map(cmb,function(d){return numeric.transpose(numeric.dot(epsilon,numeric.transpose([numeric.sub(allrootstest[d[0]],allrootstest[d[1]])])))[0]})
+
+      var firstvertex = _.map(cmb,function(d){return numeric.transpose([allrootstest[d[0]]])})
+      var secondvertex = _.map(cmb,function(d){return numeric.transpose([allrootstest[d[1]]])})
+
+      var convexedges = _.map(_.filter(_.zip(firstvertex,secondvertex,normals),function(x){return _.every(_.map(allrootstest,function(d){return isinside(x[1],numeric.transpose([x[2]]),numeric.transpose([d]))}))}),function(d){return [d[0],d[1]]});
+
+      // debugger;
+      
+      canvas.selectAll('.edge').data(convexedges).enter()
+            .append('line')
+            .attr('class','edge')
+
+      canvas.selectAll('.edge').data(convexedges).exit().remove()
+
+
+      canvas.selectAll('.edge').data(convexedges)
+            .attr('x1',function(d){return xscale(d[0][0])})
+            .attr('y1',function(d){return yscale(d[0][1])})
+            .attr('x2',function(d){return xscale(d[1][0])})
+            .attr('y2',function(d){return yscale(d[1][1])})
+
+      // canvas.selectAll('.edge').data(normals).enter()
+      //       .append('line')
+      //       .attr('class','edge')
+      //
+      // canvas.selectAll('.edge').data(normals).exit().remove()
+      //
+      // canvas.selectAll('.edge').data(normals)
+      //       .attr('x1',function(d){return xscale(0)})
+      //       .attr('y1',function(d){return yscale(0)})
+      //       .attr('x2',function(d){return xscale(d[0])})
+      //       .attr('y2',function(d){return yscale(d[1])})
         
     }
 
