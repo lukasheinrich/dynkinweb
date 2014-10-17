@@ -335,17 +335,6 @@ body{
       var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]),vertices)})
       return [repweights,convex]
     }
-    
-    //basisvecs = [[[1],[1]],[[1],[0]]]
-    //basismatrix = _.map(basisvecs,function(x){return numeric.transpose(x)[0]})
-    //coordinates = numeric.dot(numeric.inv(basismatrix),[[2],[3]])
-    
-    //basisvecs2 = [[1,1],[1,0]]
-    //numeric.dot(numeric.transpose(numeric.dot(numeric.inv(basismatrix),[[2],[3]]))[0],basisvecs2)
-    //>> [2, 3]
-
-
-    //
 
     ///
     /// DRAWING
