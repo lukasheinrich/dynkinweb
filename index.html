@@ -325,7 +325,6 @@ body{
       var rephullvertices = reflectweyl([highestweight],roots)
 
       var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
-
       var convex = convexedges(rephullvertices,vertices);
 
       var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
