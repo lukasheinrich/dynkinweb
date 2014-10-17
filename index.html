@@ -278,7 +278,7 @@ body{
 
     function convexedges(edges,vertices){
       return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.map(vertices,function(x){return Math.sign(orient(edge,x))}))]}),function(edge_sign){return edge_sign[1].length <= 2})      
-    }
+    } 
 
     function isinside(convex,x){
       return _.every(_.map(convex,function(edge_sign){return $.inArray(Math.sign(orient(edge_sign[0],x)),edge_sign[1])!=-1}))
@@ -293,8 +293,8 @@ body{
       return [fundamentalgrid,rootgrid]
     }
     
-    function getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange){
-      var fundweights = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
+    function getalgebradata(simpleroots,fundrange,rootrange){
+      var fundweights = numeric.dot(numeric.inv(getcartanmatrix(simpleroots)),simpleroots)
       var lattices = getlattices(fundweights,fundrange,simpleroots,rootrange)
       var roots = allroots(simpleroots)
       return {'lattices':lattices,'fundweights':fundweights,'roots':roots,'simpleroots':simpleroots}
@@ -313,8 +313,6 @@ body{
       var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
       var convex = convexedges(edges,vertices);
 
-      debugger;
-
       var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
 
       var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
@@ -327,21 +325,23 @@ body{
     /// DRAWING
     ///
     
+
+    function getcartanmatrix(simpleroots){
+      return _.range(simpleroots.length).map(function(i){return _.range(simpleroots.length).map(function(j){
+        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
+      })})
+    }
     
     function drawlattices(angle,scale){
       var physwidth = 10
       var a1 = [1,0]
       var a2 = numeric.mul(scale,numeric.dot(rotate(angle),a1))
      
-
       var simpleroots = [a1,a2]
-      var cartanmatrix = _.range(2).map(function(i){return _.range(2).map(function(j){
-        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
-      })})
 
       var fundrange = [-physwidth,physwidth]
       var rootrange = [-physwidth,physwidth]      
-      var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
+      var algebradata = getalgebradata(simpleroots,fundrange,rootrange)
       drawrank2_impl(algebradata)
     }
     
@@ -366,17 +366,11 @@ body{
       }
       
       var simpleroots = rank3data[dynkin]['simpleroots']
-      var cartanmatrix = _.range(3).map(function(i){return _.range(3).map(function(j){
-        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
-      })})
-
       var fundrange = [-4,5]
       var rootrange = [-3,4]      
-      var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
+      var algebradata = getalgebradata(simpleroots,fundrange,rootrange)
       drawrank3_impl(algebradata)
     }
-    
-    
     
     function drawrank2_impl(algebradata){
       d3.selectAll('x3d').remove()
@@ -400,7 +394,7 @@ body{
       var simpleroots = algebradata['simpleroots']
       var fundweights = algebradata['fundweights']
       
-      animtime = 7500
+      animtime = 750
      
       var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
       fundamentalmarker.enter().append('circle')
@@ -440,7 +434,7 @@ body{
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
       
-      drawrep2d(getrepweights([1,0],fundweights,roots,simpleroots))
+      drawrep2d(getrepweights([0,1],fundweights,roots,simpleroots))
     }
             
     function drawrep2d(data){
