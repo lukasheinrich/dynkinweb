@@ -204,9 +204,6 @@ body{
 
     <script type="text/javascript" charset="utf-8">
 
-    aa1 = [1,0]
-    aa2 = [-0.5,0.866025]
-    
     function cartanelement(beta,alpha){
       if(numeric.dot(alpha,alpha) < 0.01){return 0;}
       return Math.round(2*numeric.dot(beta,alpha)/numeric.dot(alpha,alpha))
@@ -268,26 +265,21 @@ body{
       return roots
     }
 
-
     function rotate(angle){
       return [[Math.cos(angle),-Math.sin(angle)],[Math.sin(angle),Math.cos(angle)]];
     }
     
-    function samesidezero(facevects,x,debug){
+    function orient(facevects,x,debug){
       var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[0],facevects[i])});
-      
-      var normalorient = numeric.det(_.map(facediffs.concat([facevects[0]]),function(x){return numeric.transpose(x)[0]}))
-      var testorient   = numeric.det(_.map(facediffs.concat([numeric.sub(x,facevects[0])]),function(x){return numeric.transpose(x)[0]}))
-            
-      if(Math.abs(normalorient)<0.001 && !Math.abs(testorient)<0.001) return false; //in this case the plane goes through the origin, can't decide what's 'in'
-      if(Math.abs(testorient)<0.001) return true; //in this case the test point is on the plane
-      return !(Math.sign(normalorient) == Math.sign(testorient)); 
+      return numeric.det(_.map(facediffs.concat([numeric.sub(x,facevects[0])]),function(x){return numeric.transpose(x)[0]}))
     }
 
-    function isinside(convexedges,x,debug){
-      return _.every(_.map(convexedges,function(edge){
-        return samesidezero(edge,x,debug)
-      }))
+    function convexedges(edges,vertices){
+      return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.filter(_.map(vertices,function(x){return Math.sign(orient(edge,x))}),function(x){return Math.abs(x)>0.001}))]}),function(edge_sign){return edge_sign[1].length ==1})      
+    }
+
+    function isinside(convex,x){
+      return _.every(_.map(convex,function(edge_sign){return Math.sign(orient(edge_sign[0],x)) == edge_sign[1] || Math.abs(orient(edge_sign[0],x))<0.01}))
     }
     
     function getlattices(fundweights,fundrange,simpleroots,rootrange){
@@ -321,18 +313,23 @@ body{
         return _.map(d,function(x){return numeric.transpose([rephullvertices[x]])});
       })
 
-      var convexedges = _.filter(edges,
-                      function(edge){return _.every(_.map(rephullvertices,
-                      function(testpoint){return samesidezero(edge,numeric.transpose([testpoint]))}))});
+      var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
+      var convex = convexedges(edges,vertices);
 
+      if(convex.length < 1){return []}
 
       var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
 
       var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
 
-      repweights = _.filter(candidategrid,function(x){return isinside(convexedges,numeric.transpose([x]))})
-      return [repweights,convexedges]
+      var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]))})
+      return [repweights,convex]
     }
+    
+    ///
+    /// DRAWING
+    ///
+    
     
     function drawlattices(angle,scale){
       var physwidth = 10
@@ -350,6 +347,40 @@ body{
       var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
       drawrank2_impl(algebradata)
     }
+    
+    function drawrank3(dynkin){
+      // from a CholeskyDecomposition in mathematica
+      // cartan matrix has a decomposition: D*S where D is diagonal and
+      // S is symmetric. we can Cholesky Decompose S into L^T.L 
+      // and the vectors are given by sqrt(D)*L^T
+    
+      var rank3data = 
+      {'a3':{
+          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.816497]],
+          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]},
+        'b3':{
+          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.408248]],
+          'cartanmatrix':[[2,-1,0],[-1,2,-2],[0,-1,2]]
+        },
+        'c3':{
+          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
+          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-2,2]]
+        },
+      }
+      
+      var simpleroots = rank3data[dynkin]['simpleroots']
+
+      var cartanmatrix = _.range(3).map(function(i){return _.range(3).map(function(j){
+        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
+      })})
+
+      var fundrange = [-4,5]
+      var rootrange = [-3,4]      
+      var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
+      drawrank3_impl(algebradata)
+    }
+    
+    
     
     function drawrank2_impl(algebradata){
       d3.selectAll('x3d').remove()
@@ -373,7 +404,7 @@ body{
       var simpleroots = algebradata['simpleroots']
       var fundweights = algebradata['fundweights']
       
-      animtime = 7500
+      animtime = 750
      
       var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
       fundamentalmarker.enter().append('circle')
@@ -389,7 +420,6 @@ body{
       rootsmarker.enter().append('circle')
         
       rootsmarker
-      .transition().duration(animtime).ease("elastic")
       .attr('cx',function(d){return xscale(d[0])})
       .attr('cy',function(d){return yscale(d[1])})
       .attr('r',5)
@@ -442,15 +472,16 @@ body{
       .attr('r',10)
       .attr('class','repmarker');
 
+      var justedges = _.map(convexedges,function(x){return x[0]})
 
-      canvas.selectAll('.edge').data(convexedges).enter()
+      canvas.selectAll('.edge').data(justedges).enter()
             .append('line')
             .attr('class','edge')
 
-      canvas.selectAll('.edge').data(convexedges).exit().remove()
+      canvas.selectAll('.edge').data(justedges).exit().remove()
 
 
-      canvas.selectAll('.edge').data(convexedges)
+      canvas.selectAll('.edge').data(justedges)
             .transition().duration(animtime).ease("elastic")
             .attr('x1',function(d){return xscale(d[0][0])})
             .attr('y1',function(d){return yscale(d[0][1])})
@@ -475,39 +506,6 @@ body{
     
       d3.selectAll('.repblob').attr('translation',function(d){return d.join(' ')})
    }
-
-
-    function drawrank3(dynkin){
-      // from a CholeskyDecomposition in mathematica
-      // cartan matrix has a decomposition: D*S where D is diagonal and
-      // S is symmetric. we can Cholesky Decompose S into L^T.L 
-      // and the vectors are given by sqrt(D)*L^T
-    
-      var rank3data = 
-      {'a3':{
-          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.816497]],
-          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-1,2]]},
-        'b3':{
-          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -0.57735, 0.408248]],
-          'cartanmatrix':[[2,-1,0],[-1,2,-2],[0,-1,2]]
-        },
-        'c3':{
-          'simpleroots':[[1,0,0],[-0.5,0.8660254,0],[0., -1.1547, 0.816497]],
-          'cartanmatrix':[[2,-1,0],[-1,2,-1],[0,-2,2]]
-        },
-      }
-      
-      var simpleroots = rank3data[dynkin]['simpleroots']
-
-      var cartanmatrix = _.range(3).map(function(i){return _.range(3).map(function(j){
-        return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
-      })})
-
-      var fundrange = [-4,5]
-      var rootrange = [-3,4]      
-      var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
-      drawrank3_impl(algebradata)
-    }
     
     function drawrank3_impl(algebradata){
       d3.select("#canvasbox").selectAll('*').remove();
