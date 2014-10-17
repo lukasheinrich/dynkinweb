@@ -332,8 +332,6 @@ body{
 
       var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
 
-      isinside(convex,[[2],[0]],vertices)
-
       var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]),vertices)})
       return [repweights,convex]
     }
