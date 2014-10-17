@@ -271,35 +271,32 @@ body{
     
     function orient(facevects,x,debug){
       var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[0],facevects[i])});
-      return numeric.det(_.map(facediffs.concat([numeric.sub(x,facevects[0])]),function(x){return numeric.transpose(x)[0]}))
+      var orient = numeric.det(_.map(facediffs.concat([numeric.sub(x,facevects[0])]),function(x){return numeric.transpose(x)[0]}))
+      if(Math.abs(orient)<0.01) orient = 0;
+      return orient;
     }
 
     function convexedges(edges,vertices){
-      return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.filter(_.map(vertices,function(x){return Math.sign(orient(edge,x))}),function(x){return Math.abs(x)>0.001}))]}),function(edge_sign){return edge_sign[1].length ==1})      
+      return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.map(vertices,function(x){return Math.sign(orient(edge,x))}))]}),function(edge_sign){return edge_sign[1].length <= 2})      
     }
 
     function isinside(convex,x){
-      return _.every(_.map(convex,function(edge_sign){return Math.sign(orient(edge_sign[0],x)) == edge_sign[1] || Math.abs(orient(edge_sign[0],x))<0.01}))
+      return _.every(_.map(convex,function(edge_sign){return $.inArray(Math.sign(orient(edge_sign[0],x)),edge_sign[1])!=-1}))
     }
     
     function getlattices(fundweights,fundrange,simpleroots,rootrange){
       var lincombsroot = Combinatorics.cartesianProduct.apply(this,_.map(_.range(simpleroots.length),function(x){return _.range.apply(this,rootrange)})).toArray()
-
       var rootgrid = _.map(lincombsroot,function(x){return numeric.dot(x,simpleroots)})
 
       var lincombsfund = Combinatorics.cartesianProduct.apply(this,_.map(_.range(fundweights.length),function(x){return _.range.apply(this,fundrange)})).toArray()
-
       var fundamentalgrid = _.map(lincombsfund,function(x){return numeric.dot(x,fundweights)})
       return [fundamentalgrid,rootgrid]
     }
     
     function getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange){
       var fundweights = numeric.dot(numeric.inv(cartanmatrix),simpleroots)
-
       var lattices = getlattices(fundweights,fundrange,simpleroots,rootrange)
-
       var roots = allroots(simpleroots)
-      
       return {'lattices':lattices,'fundweights':fundweights,'roots':roots,'simpleroots':simpleroots}
     }
     
@@ -316,7 +313,7 @@ body{
       var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
       var convex = convexedges(edges,vertices);
 
-      if(convex.length < 1){return []}
+      debugger;
 
       var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
 
@@ -342,8 +339,8 @@ body{
         return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
       })})
 
-      var fundrange = [-2*physwidth,2*physwidth]
-      var rootrange = [-2*physwidth,2*physwidth]      
+      var fundrange = [-physwidth,physwidth]
+      var rootrange = [-physwidth,physwidth]      
       var algebradata = getalgebradata(simpleroots,cartanmatrix,fundrange,rootrange)
       drawrank2_impl(algebradata)
     }
@@ -369,7 +366,6 @@ body{
       }
       
       var simpleroots = rank3data[dynkin]['simpleroots']
-
       var cartanmatrix = _.range(3).map(function(i){return _.range(3).map(function(j){
         return 2*numeric.dot(simpleroots[i],simpleroots[j])/numeric.dot(simpleroots[j],simpleroots[j]);
       })})
@@ -404,7 +400,7 @@ body{
       var simpleroots = algebradata['simpleroots']
       var fundweights = algebradata['fundweights']
       
-      animtime = 750
+      animtime = 7500
      
       var fundamentalmarker = canvas.selectAll('.fundamental').data(fundamentalgrid)
       fundamentalmarker.enter().append('circle')
@@ -450,6 +446,7 @@ body{
     function drawrep2d(data){
       var repweights = data[0]
       var convexedges = data[1]
+      var justedges = _.map(convexedges,function(x){return x[0]})
 
       var canvas = d3.selectAll('#canvas')
 
@@ -472,14 +469,11 @@ body{
       .attr('r',10)
       .attr('class','repmarker');
 
-      var justedges = _.map(convexedges,function(x){return x[0]})
-
-      canvas.selectAll('.edge').data(justedges).enter()
-            .append('line')
-            .attr('class','edge')
+     canvas.selectAll('.edge').data(justedges).enter()
+                               .append('line')
+                               .attr('class','edge')
 
       canvas.selectAll('.edge').data(justedges).exit().remove()
-
 
       canvas.selectAll('.edge').data(justedges)
             .transition().duration(animtime).ease("elastic")
