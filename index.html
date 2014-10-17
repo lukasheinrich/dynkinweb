@@ -276,11 +276,30 @@ body{
       return orient;
     }
 
-    function convexedges(edges,vertices){
+    function convexedges(hullvertices){
+      var cmb = Combinatorics.combination(_.range(hullvertices.length),hullvertices[0].length).toArray()
+      var edges = _.map(cmb,function(d){return _.map(d,function(x){return numeric.transpose([hullvertices[x]])});})
+      var vertices = _.map(hullvertices,function(x){return numeric.transpose([x])})
       return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.map(vertices,function(x){return Math.sign(orient(edge,x))}))]}),function(edge_sign){return edge_sign[1].length <= 2})      
     } 
 
-    function isinside(convex,x){
+    function lowerconvex(convex,testpoint,vertices){
+      var facevects = convex[0][0]
+      var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[0],facevects[i])});
+      var transposediffs = _.map(facediffs,function(x){return numeric.transpose(x)[0]})
+      var newbasis = transposediffs.concat([normalvec(transposediffs)])
+      var newcoords = numeric.dot(numeric.inv(newbasis),testpoint)
+      var newtestpoint = newcoords.slice(0,testpoint.length-1)
+      var newvertices = _.map(vertices,function(x){return numeric.dot(numeric.inv(newbasis),x).slice(0,testpoint.length-1)})
+
+      if(Math.abs(newcoords.slice(-1)[0]) > 0.01){return false;}
+
+      var newhull = _.map(newvertices,function(x){return numeric.transpose(x)[0]})
+      return isinside(convexedges(newhull),newtestpoint)
+    }
+
+    function isinside(convex,x,vertices){
+      if(convex.length==1) return lowerconvex(convex,x,vertices)
       return _.every(_.map(convex,function(edge_sign){return $.inArray(Math.sign(orient(edge_sign[0],x)),edge_sign[1])!=-1}))
     }
     
@@ -304,27 +323,42 @@ body{
       var rank = fundamentalweights.length;
       var highestweight = numeric.dot(highestcoeff,fundamentalweights)
       var rephullvertices = reflectweyl([highestweight],roots)
-      var cmb = Combinatorics.combination(_.range(rephullvertices.length),rank).toArray()
-
-      var edges = _.map(cmb,function(d){
-        return _.map(d,function(x){return numeric.transpose([rephullvertices[x]])});
-      })
 
       var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
-      var convex = convexedges(edges,vertices);
+
+      var convex = convexedges(rephullvertices,vertices);
 
       var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
 
       var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
 
-      var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]))})
+      isinside(convex,[[2],[0]],vertices)
+
+      var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]),vertices)})
       return [repweights,convex]
     }
     
+    //basisvecs = [[[1],[1]],[[1],[0]]]
+    //basismatrix = _.map(basisvecs,function(x){return numeric.transpose(x)[0]})
+    //coordinates = numeric.dot(numeric.inv(basismatrix),[[2],[3]])
+    
+    //basisvecs2 = [[1,1],[1,0]]
+    //numeric.dot(numeric.transpose(numeric.dot(numeric.inv(basismatrix),[[2],[3]]))[0],basisvecs2)
+    //>> [2, 3]
+
+
+    //
+
     ///
     /// DRAWING
     ///
     
+    function normalvec(nmin1vecs){
+      var dim = nmin1vecs[0].length
+      var orthobasis = _.map(_.range(dim),function(x){v=_.map(_.range(dim),function(){return 0});v[x]=1;return v})
+      return _.map(orthobasis,function(x){return numeric.det([x].concat(nmin1vecs))})
+    }
+
 
     function getcartanmatrix(simpleroots){
       return _.range(simpleroots.length).map(function(i){return _.range(simpleroots.length).map(function(j){
@@ -434,7 +468,7 @@ body{
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
       
-      drawrep2d(getrepweights([0,1],fundweights,roots,simpleroots))
+      drawrep2d(getrepweights([1,0],fundweights,roots,simpleroots))
     }
             
     function drawrep2d(data){
