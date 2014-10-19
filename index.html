@@ -204,6 +204,10 @@ body{
 
     <script type="text/javascript" charset="utf-8">
 
+    function Mathsign(x) {
+        return typeof x === 'number' ? x ? x < 0 ? -1 : 1 : x === x ? 0 : NaN : NaN;
+    }
+    
     function cartanelement(beta,alpha){
       if(numeric.dot(alpha,alpha) < 0.01){return 0;}
       return Math.round(2*numeric.dot(beta,alpha)/numeric.dot(alpha,alpha))
@@ -280,27 +284,33 @@ body{
       var cmb = Combinatorics.combination(_.range(hullvertices.length),hullvertices[0].length).toArray()
       var edges = _.map(cmb,function(d){return _.map(d,function(x){return numeric.transpose([hullvertices[x]])});})
       var vertices = _.map(hullvertices,function(x){return numeric.transpose([x])})
-      return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.map(vertices,function(x){return Math.sign(orient(edge,x))}))]}),function(edge_sign){return edge_sign[1].length <= 2})      
+      return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.map(vertices,function(x){return Mathsign(orient(edge,x))}))]}),function(edge_sign){return edge_sign[1].length <= 2})      
     } 
 
-    function lowerconvex(convex,testpoint,vertices){
-      var facevects = convex[0][0]
-      var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[0],facevects[i])});
+    function lowerconvex(thisconvex,thisvertices){
+      var facevects = thisconvex[0][0]
+      var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[i],facevects[0])});
       var transposediffs = _.map(facediffs,function(x){return numeric.transpose(x)[0]})
       var newbasis = transposediffs.concat([normalvec(transposediffs)])
-      var newcoords = numeric.dot(numeric.inv(newbasis),testpoint)
-      var newtestpoint = newcoords.slice(0,testpoint.length-1)
-      var newvertices = _.map(vertices,function(x){return numeric.dot(numeric.inv(newbasis),x).slice(0,testpoint.length-1)})
 
-      if(Math.abs(newcoords.slice(-1)[0]) > 0.01){return false;}
+      var vertexdiffs = _.map(thisvertices,function(x){return numeric.sub(x,facevects[0])})
+
+      var newvertices = _.map(vertexdiffs,function(x){return numeric.dot(numeric.inv(numeric.transpose(newbasis)),x).slice(0,facevects[0].length-1)})
 
       var newhull = _.map(newvertices,function(x){return numeric.transpose(x)[0]})
-      return isinside(convexedges(newhull),newtestpoint)
+      
+      return [convexedges(newhull),newbasis];
     }
 
     function isinside(convex,x,vertices){
-      if(convex.length==1) return lowerconvex(convex,x,vertices)
-      return _.every(_.map(convex,function(edge_sign){return $.inArray(Math.sign(orient(edge_sign[0],x)),edge_sign[1])!=-1}))
+      if(convex.length==1){
+        var lower = lowerconvex(convex,vertices)
+        var newcoords = numeric.dot(numeric.inv(lower[1]),numeric.sub(x,convex[0][0][0]))
+        if(Math.abs(newcoords.slice(-1)[0]) > 0.01){return false;}
+        var newtestpoint = newcoords.slice(0,x.length-1)
+        return isinside(lower[0],newtestpoint)
+      }
+      return _.every(_.map(convex,function(edge_sign){return $.inArray(Mathsign(orient(edge_sign[0],x)),edge_sign[1])!=-1}))
     }
     
     function getlattices(fundweights,fundrange,simpleroots,rootrange){
@@ -329,7 +339,8 @@ body{
 
       var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
 
-      var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
+      // isinside(convex,[[0.5],[0]],vertices)
+     var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
 
       var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]),vertices)})
       return [repweights,convex]
@@ -459,8 +470,8 @@ body{
             
     function drawrep2d(data){
       var repweights = data[0]
-      var convexedges = data[1]
-      var justedges = _.map(convexedges,function(x){return x[0]})
+      var convex = data[1]
+      var justedges = _.map(convex,function(x){return x[0]})
 
       var canvas = d3.selectAll('#canvas')
 
@@ -483,23 +494,36 @@ body{
       .attr('r',10)
       .attr('class','repmarker');
 
-     canvas.selectAll('.edge').data(justedges).enter()
+
+      var lowerconvexedges = []
+      for(i=0;i<convex.length;i++){
+        var hullvertices = _.map(convex[i][0],function(x){return numeric.transpose(x)[0]})
+        var lower = lowerconvex(convexedges(hullvertices),convex[i][0])
+        var newhull = lower[0]
+        var newbasis = lower[1]
+        var newnull = convexedges(hullvertices)[0][0][0]
+        var thisedge = _.map(newhull,function(edge){return _.map(edge[0],function(edgepoint){return numeric.add(newnull,numeric.dot(numeric.transpose(newbasis),edgepoint.concat([[0]])))})})
+        lowerconvexedges.push(thisedge);
+      }
+
+     canvas.selectAll('.edge').data(lowerconvexedges).enter()
                                .append('line')
                                .attr('class','edge')
 
-      canvas.selectAll('.edge').data(justedges).exit().remove()
+      canvas.selectAll('.edge').data(lowerconvexedges).exit().remove()
 
-      canvas.selectAll('.edge').data(justedges)
+      canvas.selectAll('.edge').data(lowerconvexedges)
             .transition().duration(animtime).ease("elastic")
-            .attr('x1',function(d){return xscale(d[0][0])})
-            .attr('y1',function(d){return yscale(d[0][1])})
-            .attr('x2',function(d){return xscale(d[1][0])})
-            .attr('y2',function(d){return yscale(d[1][1])})
+            .attr('x1',function(d){return xscale(d[0][0][0][0])})
+            .attr('y1',function(d){return yscale(d[0][0][1][0])})
+            .attr('x2',function(d){return xscale(d[1][0][0][0])})
+            .attr('y2',function(d){return yscale(d[1][0][1][0])})            
+
     }
     
     function drawrep3d(data){
       var repweights = data[0]
-      var convexedges = data[1]
+      var convex = data[1]
       var scene = d3.select('#canvasbox').append('x3d').attr("id",'x3dbox').append('scene')
 
       var repspheres = d3.select('#the_scene').selectAll('.sphere').data(repweights)
@@ -513,6 +537,31 @@ body{
       })
     
       d3.selectAll('.repblob').attr('translation',function(d){return d.join(' ')})
+
+
+      var lowerconvexedges = []
+      for(i=0;i<convex.length;i++){
+        var hullvertices = _.map(convex[i][0],function(x){return numeric.transpose(x)[0]})
+        var lower = lowerconvex(convexedges(hullvertices),convex[i][0])
+        var newhull = lower[0]
+        var newbasis = lower[1]
+        var newnull = convexedges(hullvertices)[0][0][0]
+        var thisedge = _.map(newhull,function(edge){return _.map(edge[0],function(edgepoint){return numeric.add(newnull,numeric.dot(numeric.transpose(newbasis),edgepoint.concat([[0]])))})})
+        lowerconvexedges.push(thisedge);
+      }
+
+      for(i = 0;i<lowerconvexedges.length;i++){
+        var hulllines = d3.select('#the_scene')
+        .selectAll('.hullline'+i).data(lowerconvexedges[i]).enter().append('shape').attr('class','hullline'+i)
+        hulllines = d3.select('#the_scene').selectAll('.hullline'+i)
+        hulllines.append('appearance').append('material').attr('emissiveColor','green')
+        hulllines.append('lineset')
+        .append('coordinate').attr('point',function(d){
+          return numeric.transpose(d[0])[0].join(' ')+' '+numeric.transpose(d[1])[0].join(' ')}
+        )
+    }
+
+
    }
     
     function drawrank3_impl(algebradata){
