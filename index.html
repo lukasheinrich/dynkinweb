@@ -485,8 +485,12 @@ body{
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
       
-      var rep = JSON.parse($('#rep').val())
+      var rep = $('#rep').val()=='' ? [] : JSON.parse($('#rep').val())
       if(rep.length == 2) drawrep2d(getrepweights(rep,fundweights,roots,simpleroots))
+      else{
+        d3.selectAll('.edge').remove()
+        d3.selectAll('.repmarker').remove()
+      }
     }
             
     function drawrep2d(data){
