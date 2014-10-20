@@ -287,7 +287,12 @@ body{
       var cmb = Combinatorics.combination(_.range(hullvertices.length),hullvertices[0].length).toArray()
       var edges = _.map(cmb,function(d){return _.map(d,function(x){return numeric.transpose([hullvertices[x]])});})
       var vertices = _.map(hullvertices,function(x){return numeric.transpose([x])})
-      return _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.map(vertices,function(x){return Mathsign(orient(edge,x))}))]}),function(edge_sign){return edge_sign[1].length <= 2})      
+      var allconvex = _.filter(_.map(edges,function(edge){return [edge,_.uniq(_.map(vertices,function(x){return Mathsign(orient(edge,x))}))]}),function(edge_sign){return edge_sign[1].length <= 2})      
+
+      var completeedges = _.map(allconvex,function(y){return [y,_.filter(hullvertices,function(x){return orient(y[0],numeric.transpose([x]))==0}).toString()]})
+      var unique =  _.map(_.uniq(completeedges,false,function(x){return x[1]}),function(x){return x[0]})
+      console.log('unique: ' + unique.length)
+      return unique
     } 
 
     function lowerconvex(thisconvex,thisvertices){
@@ -307,6 +312,7 @@ body{
 
     function isinside(convex,x,vertices){
       if(convex.length==1){
+        if(orient(convex[0][0],x)!=0) return false;
         var lower = lowerconvex(convex,vertices)
         var newcoords = numeric.dot(numeric.inv(lower[1]),numeric.sub(x,convex[0][0][0]))
         if(Math.abs(newcoords.slice(-1)[0]) > 0.01){return false;}
@@ -336,15 +342,10 @@ body{
       var rank = fundamentalweights.length;
       var highestweight = numeric.dot(highestcoeff,fundamentalweights)
       var rephullvertices = reflectweyl([highestweight],roots)
-
       var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
       var convex = convexedges(rephullvertices,vertices);
-
-      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-20,20)})).toArray()
-
-      // isinside(convex,[[0.5],[0]],vertices)
-     var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
-
+      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
+      var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
       var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]),vertices)})
       return [repweights,convex]
     }
@@ -352,14 +353,14 @@ body{
     function uniquelowerconvex(allpoints,convex){
       var lowerconvexedges = []
       var completeedges = _.map(convex,function(y){return _.filter(allpoints,function(x){return orient(y[0],numeric.transpose([x]))==0})})
-      var uniqueedges = _.uniq(completeedges,false,function(x){return x.toString()})
-      for(i=0;i<uniqueedges.length;i++){
-        var allonedge = uniqueedges[i]
+      for(i=0;i<completeedges.length;i++){
+        var allonedge = completeedges[i]
         var allonedgetr = _.map(allonedge,function(x){return numeric.transpose([x])})
-        var lower = lowerconvex(convexedges(allonedge),allonedgetr)
+        var newconvex = convexedges(allonedge)
+        var lower = lowerconvex(newconvex,allonedgetr)
         var newhull = lower[0]
         var newbasis = lower[1]
-        var newnull = convexedges(allonedge)[0][0][0]
+        var newnull = newconvex[0][0][0]
         var thisedge = _.map(newhull,function(edge){return _.map(edge[0],function(edgepoint){return numeric.add(newnull,numeric.dot(numeric.transpose(newbasis),edgepoint.concat([[0]])))})})
         lowerconvexedges.push(thisedge);
       }      
@@ -486,6 +487,7 @@ body{
       .attr('class','fundarrow')
       
       var rep = $('#rep').val()=='' ? [] : JSON.parse($('#rep').val())
+      debugger;
       if(rep.length == 2) drawrep2d(getrepweights(rep,fundweights,roots,simpleroots))
       else{
         d3.selectAll('.edge').remove()
@@ -596,9 +598,9 @@ body{
         .attr('transparency',0.2)
         d3.select(this).append('sphere').attr('radius',0.02)
       })
-    
+
       d3.selectAll('.rootblob').attr('translation',function(d){return d.join(' ')})
-    
+
       var fundamental3dspheres = d3.select('#the_scene').selectAll('.sphere').data(fundamentalgrid)
       fundamental3dspheres.enter().append('transform').attr('class','fundblob')
       .append('shape')
@@ -606,9 +608,9 @@ body{
         d3.select(this).append('appearance').append('material').attr('diffuseColor','#995555')
         d3.select(this).append('sphere').attr('radius',0.01)
       })
-      
+
       d3.selectAll('.fundblob').attr('translation',function(d){return d.join(' ')})
-      
+
       var rootlines = d3.select('#the_scene').selectAll('.rootline').data(roots).enter().append('shape').attr('class','rootline')
       rootlines = d3.select('#the_scene').selectAll('.rootline')
       rootlines.append('appearance').append('material').attr('emissiveColor','steelblue')
@@ -622,7 +624,8 @@ body{
       fundlines.append('lineset')
       .append('coordinate').attr('point',function(d){return '0 0 0 '+d.join(' ')})
 
-      var rep = JSON.parse($('#rep').val())
+      var rep = $('#rep').val()=='' ? [] : JSON.parse($('#rep').val())
+      debugger;
       if(rep.length == 3) drawrep3d(getrepweights(rep,fundweights,roots,simpleroots))
 
 
