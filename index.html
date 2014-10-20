@@ -174,6 +174,10 @@ body{
     </form>
   </p>      
   <p>
+    coordinates of highest weight<br>
+    <input id='rep' type="text" value = "e.g.: [1,0] or [1,0,0]">
+  </p>
+  <p>
     This small demo will draw the fundamental weight lattice as well as the root lattice of the semi-simple Lie algebra associated to the selected Dynkin diagram. For the rank three algebras, WebGL must be enabled to view it (Google Chrome does this by default.)
   </p>
   <p>    
@@ -182,12 +186,11 @@ body{
       <table>
         <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=2 class="fundamental"></circle></svg>weight</td></tr>
         <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=5 class="root"></circle></svg> root lattice weight</td></tr>
-        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=7 class="repmarker"></circle></svg> fundamental rep weight</td></tr>
+        <tr><td><svg width=20 height=20><circle cx=10 cy=10 r=7 class="repmarker"></circle></svg> irrep weight</td></tr>
         <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="rootarrow"></circle></svg> root</td></tr>
         <tr><td><svg width=20 height=20><line x1=0 y1=10 x2=20 y2=10 class="fundarrow"></circle></svg> fundamental dominant weight</td></tr>
         </table>
       </div>
-
     </p>
     <p>
     Various things can be deduced by eye. The index of the root lattice as a sublattice of the fundamental lattice is the center of the universally covering group with that Lie Algebra.
@@ -337,13 +340,30 @@ body{
       var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
       var convex = convexedges(rephullvertices,vertices);
 
-      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
+      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-20,20)})).toArray()
 
       // isinside(convex,[[0.5],[0]],vertices)
      var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
 
       var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]),vertices)})
       return [repweights,convex]
+    }
+
+    function uniquelowerconvex(allpoints,convex){
+      var lowerconvexedges = []
+      var completeedges = _.map(convex,function(y){return _.filter(allpoints,function(x){return orient(y[0],numeric.transpose([x]))==0})})
+      var uniqueedges = _.uniq(completeedges,false,function(x){return x.toString()})
+      for(i=0;i<uniqueedges.length;i++){
+        var allonedge = uniqueedges[i]
+        var allonedgetr = _.map(allonedge,function(x){return numeric.transpose([x])})
+        var lower = lowerconvex(convexedges(allonedge),allonedgetr)
+        var newhull = lower[0]
+        var newbasis = lower[1]
+        var newnull = convexedges(allonedge)[0][0][0]
+        var thisedge = _.map(newhull,function(edge){return _.map(edge[0],function(edgepoint){return numeric.add(newnull,numeric.dot(numeric.transpose(newbasis),edgepoint.concat([[0]])))})})
+        lowerconvexedges.push(thisedge);
+      }      
+      return lowerconvexedges;
     }
 
     ///
@@ -397,8 +417,8 @@ body{
       }
       
       var simpleroots = rank3data[dynkin]['simpleroots']
-      var fundrange = [-4,5]
-      var rootrange = [-3,4]      
+      var fundrange = [-5,5]
+      var rootrange = [-5,5]      
       var algebradata = getalgebradata(simpleroots,fundrange,rootrange)
       drawrank3_impl(algebradata)
     }
@@ -465,7 +485,8 @@ body{
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
       
-      drawrep2d(getrepweights([1,0],fundweights,roots,simpleroots))
+      var rep = JSON.parse($('#rep').val())
+      if(rep.length == 2) drawrep2d(getrepweights(rep,fundweights,roots,simpleroots))
     }
             
     function drawrep2d(data){
@@ -494,17 +515,8 @@ body{
       .attr('r',10)
       .attr('class','repmarker');
 
-
-      var lowerconvexedges = []
-      for(i=0;i<convex.length;i++){
-        var hullvertices = _.map(convex[i][0],function(x){return numeric.transpose(x)[0]})
-        var lower = lowerconvex(convexedges(hullvertices),convex[i][0])
-        var newhull = lower[0]
-        var newbasis = lower[1]
-        var newnull = convexedges(hullvertices)[0][0][0]
-        var thisedge = _.map(newhull,function(edge){return _.map(edge[0],function(edgepoint){return numeric.add(newnull,numeric.dot(numeric.transpose(newbasis),edgepoint.concat([[0]])))})})
-        lowerconvexedges.push(thisedge);
-      }
+     
+     lowerconvexedges = uniquelowerconvex(repweights,convex)
 
      canvas.selectAll('.edge').data(lowerconvexedges).enter()
                                .append('line')
@@ -538,17 +550,7 @@ body{
     
       d3.selectAll('.repblob').attr('translation',function(d){return d.join(' ')})
 
-
-      var lowerconvexedges = []
-      for(i=0;i<convex.length;i++){
-        var hullvertices = _.map(convex[i][0],function(x){return numeric.transpose(x)[0]})
-        var lower = lowerconvex(convexedges(hullvertices),convex[i][0])
-        var newhull = lower[0]
-        var newbasis = lower[1]
-        var newnull = convexedges(hullvertices)[0][0][0]
-        var thisedge = _.map(newhull,function(edge){return _.map(edge[0],function(edgepoint){return numeric.add(newnull,numeric.dot(numeric.transpose(newbasis),edgepoint.concat([[0]])))})})
-        lowerconvexedges.push(thisedge);
-      }
+      lowerconvexedges = uniquelowerconvex(repweights,convex)
 
       for(i = 0;i<lowerconvexedges.length;i++){
         var hulllines = d3.select('#the_scene')
@@ -616,7 +618,8 @@ body{
       fundlines.append('lineset')
       .append('coordinate').attr('point',function(d){return '0 0 0 '+d.join(' ')})
 
-      drawrep3d(getrepweights([1,0,0],fundweights,roots,simpleroots))
+      var rep = JSON.parse($('#rep').val())
+      if(rep.length == 3) drawrep3d(getrepweights(rep,fundweights,roots,simpleroots))
 
 
       x3dom.reload()
