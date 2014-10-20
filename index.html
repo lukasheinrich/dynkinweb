@@ -174,8 +174,8 @@ body{
     </form>
   </p>      
   <p>
-    coordinates of highest weight<br>
-    <input id='rep' type="text" placeholder= "e.g.: [1,0] or [1,0,0]">
+    <!-- coordinates of highest weight<br>
+    <input id='rep' type="text" placeholder= "e.g.: [1,0] or [1,0,0]"> -->
   </p>
   <p>
     This small demo will draw the fundamental weight lattice as well as the root lattice of the semi-simple Lie algebra associated to the selected Dynkin diagram. For the rank three algebras, WebGL must be enabled to view it (Google Chrome does this by default.)
@@ -212,13 +212,13 @@ body{
     }
     
     function cartanelement(beta,alpha){
-      if(numeric.dot(alpha,alpha) < 0.01){return 0;}
+      if(numeric.dot(alpha,alpha) < 0.1){return 0;}
       return Math.round(2*numeric.dot(beta,alpha)/numeric.dot(alpha,alpha))
     }
     
     function vecinlist(vec,list){
       for(var i=0;i<list.length;i++){
-        if(numeric.norm2(numeric.add(vec,numeric.mul(-1,list[i]))) < 0.01){return true;}
+        if(numeric.norm2(numeric.add(vec,numeric.mul(-1,list[i]))) < 0.1){return true;}
       }
       return false
     }
@@ -279,7 +279,7 @@ body{
     function orient(facevects,x,debug){
       var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[0],facevects[i])});
       var orient = numeric.det(_.map(facediffs.concat([numeric.sub(x,facevects[0])]),function(x){return numeric.transpose(x)[0]}))
-      if(Math.abs(orient)<0.01) orient = 0;
+      if(Math.abs(orient)<0.1) orient = 0;
       return orient;
     }
 
@@ -291,7 +291,6 @@ body{
 
       var completeedges = _.map(allconvex,function(y){return [y,_.filter(hullvertices,function(x){return orient(y[0],numeric.transpose([x]))==0}).toString()]})
       var unique =  _.map(_.uniq(completeedges,false,function(x){return x[1]}),function(x){return x[0]})
-      console.log('unique: ' + unique.length)
       return unique
     } 
 
@@ -300,13 +299,9 @@ body{
       var facediffs = _.map(_.range(1,facevects.length),function(i){return numeric.sub(facevects[i],facevects[0])});
       var transposediffs = _.map(facediffs,function(x){return numeric.transpose(x)[0]})
       var newbasis = transposediffs.concat([normalvec(transposediffs)])
-
       var vertexdiffs = _.map(thisvertices,function(x){return numeric.sub(x,facevects[0])})
-
       var newvertices = _.map(vertexdiffs,function(x){return numeric.dot(numeric.inv(numeric.transpose(newbasis)),x).slice(0,facevects[0].length-1)})
-
       var newhull = _.map(newvertices,function(x){return numeric.transpose(x)[0]})
-      
       return [convexedges(newhull),newbasis];
     }
 
@@ -315,7 +310,7 @@ body{
         if(orient(convex[0][0],x)!=0) return false;
         var lower = lowerconvex(convex,vertices)
         var newcoords = numeric.dot(numeric.inv(lower[1]),numeric.sub(x,convex[0][0][0]))
-        if(Math.abs(newcoords.slice(-1)[0]) > 0.01){return false;}
+        if(Math.abs(newcoords.slice(-1)[0]) > 0.1){return false;}
         var newtestpoint = newcoords.slice(0,x.length-1)
         return isinside(lower[0],newtestpoint)
       }
@@ -344,7 +339,7 @@ body{
       var rephullvertices = reflectweyl([highestweight],roots)
       var vertices = _.map(rephullvertices,function(x){return numeric.transpose([x])})
       var convex = convexedges(rephullvertices,vertices);
-      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-10,10)})).toArray()
+      var lincombs = Combinatorics.cartesianProduct.apply(this,_.map(_.range(rank),function(x){return _.range(-30,30)})).toArray()
       var candidategrid = _.map(lincombs,function(x){return numeric.add(highestweight,numeric.dot(x,simpleroots))})
       var repweights = _.filter(candidategrid,function(x){return isinside(convex,numeric.transpose([x]),vertices)})
       return [repweights,convex]
@@ -364,6 +359,7 @@ body{
         var thisedge = _.map(newhull,function(edge){return _.map(edge[0],function(edgepoint){return numeric.add(newnull,numeric.dot(numeric.transpose(newbasis),edgepoint.concat([[0]])))})})
         lowerconvexedges.push(thisedge);
       }      
+      
       return lowerconvexedges;
     }
 
@@ -486,8 +482,8 @@ body{
       .attr('x2',function(d){return xscale(d[0])}).attr('y2',function(d){return yscale(d[1])})
       .attr('class','fundarrow')
       
-      var rep = $('#rep').val()=='' ? [] : JSON.parse($('#rep').val())
-      debugger;
+      // var rep = $('#rep').val()=='' ? [] : JSON.parse($('#rep').val())
+      var rep = [1,0]
       if(rep.length == 2) drawrep2d(getrepweights(rep,fundweights,roots,simpleroots))
       else{
         d3.selectAll('.edge').remove()
@@ -557,6 +553,7 @@ body{
       d3.selectAll('.repblob').attr('translation',function(d){return d.join(' ')})
 
       lowerconvexedges = uniquelowerconvex(repweights,convex)
+      
 
       for(i = 0;i<lowerconvexedges.length;i++){
         var hulllines = d3.select('#the_scene')
@@ -624,8 +621,8 @@ body{
       fundlines.append('lineset')
       .append('coordinate').attr('point',function(d){return '0 0 0 '+d.join(' ')})
 
-      var rep = $('#rep').val()=='' ? [] : JSON.parse($('#rep').val())
-      debugger;
+      // var rep = $('#rep').val()=='' ? [] : JSON.parse($('#rep').val())
+      var rep = [1,0,0]
       if(rep.length == 3) drawrep3d(getrepweights(rep,fundweights,roots,simpleroots))
 
 
